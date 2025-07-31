@@ -21,6 +21,12 @@
       "require": "./dist/bubble.umd.cjs"
     }
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "url": "https://github.com/bbb0ttle/bubble"
+  },
   "devDependencies": {
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
