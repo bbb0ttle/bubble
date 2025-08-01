@@ -5,7 +5,7 @@ class BBBubble extends HTMLElement {
         super();
         this.root = this.attachShadow({ mode: 'open' });
         this.root.innerHTML = `
-            <div class="bubble" style="${css()}">
+            <div class="bubble" idle float>
                 <slot></slot>
             </div>
         `;
@@ -50,6 +50,42 @@ function css(): string {
         position: absolute;
         
         box-shadow: inset 0 -8px 16px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)
+    }
+    
+    [idle] {
+        animation: idle 2s ease-in-out infinite;
+    }
+    
+    [float] {
+        animation: float 2s ease-in-out infinite;
+    }
+    
+    [float][idle] {
+        animation: float 2s ease-in-out infinite, idle 2s ease-in-out infinite;
+    }
+    
+    @keyframes idle {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.03);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+    
+    @keyframes float {
+        0% {
+            top: 8px;
+        }
+        50% {
+            top: 5px;
+        }
+        100% {
+            top: 8px
+        }
     }
 `
 }
