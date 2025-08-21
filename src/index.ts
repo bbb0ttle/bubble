@@ -1,52 +1,70 @@
 import { css } from './style';
 import { type Area } from './area';
 
-class BBBubble extends HTMLElement {
+export class BBBubble extends HTMLElement {
     root: ShadowRoot;
 
     constructor() {
         super();
         this.root = this.attachShadow({ mode: 'open' });
         this.root.innerHTML = `
-            <div class="bubble" idle>
+            <div class="bubble" idle hide>
                 <slot></slot>
             </div>
         `;
     }
 
+    public eat(another: BBBubble) {
+        if (another == null || another == this || another.died) {
+            return;
+        }
 
-    public pauseAnimation() {
-        this.bubbleElement?.removeAttribute('idle');
+        this.updateSize(this.getSafeSize(this.size + another.size * 0.5));
+
+        another.died = true;
+
+        another.moveTo(this.x, this.y);
+
     }
 
-    public playAnimation() {
-        this.bubbleElement?.setAttribute('idle', '');
-    }
+    public isOverlapWith(another: BBBubble) {
+        // detect overlap by pos and size
+        const distBetweenBubbles = Math.sqrt(
+            Math.pow(this.x - another.x, 2) + Math.pow(this.y - another.y, 2));
 
-    public eat(anotherBubble: BBBubble) {
-        anotherBubble.hide();
-        this.updateSize(this.getSafeSize(this.size + anotherBubble.size * 0.5));
+        return distBetweenBubbles < (this.size + another.size) / 2;
     }
 
     public moveTo(x: number, y: number) {
+        this.x = this.getSafeX(x);
+        this.y = this.getSafeY(y);
+
         const bubble = this.bubbleElement;
         if (bubble) {
-            bubble.style.top = `${this.getSafeY(y)}px`;
-            bubble.style.left = `${this.getSafeX(x)}px`;
+            bubble.style.top = `${this.y}px`;
+            bubble.style.left = `${this.x}px`;
         }
     }
 
-    public hide() {
-        this.updateSize(this.minSize);
-        this.pauseAnimation();
-        this.getBubbleElement()?.removeAttribute('show');
-        this.getBubbleElement()?.setAttribute('hide', '');
+    public get died(): boolean {
+        return this._died;
     }
 
-    public show() {
-        this.playAnimation();
-        this.bubbleElement?.removeAttribute('hide');
-        this.bubbleElement?.setAttribute('show', '');
+    public set died(value: boolean) {
+        this._died = value;
+
+        if (!value) {
+            this.moveToRandomPositionWithinBirthplace();
+
+            // delay .2s and show
+            setTimeout(() => {
+                this.show();
+            }, 200);
+
+            return;
+        }
+
+        this.hide();
     }
 
     public updateSize(newSize: number) {
@@ -57,6 +75,29 @@ class BBBubble extends HTMLElement {
         bubble!.style.width = `${this.size}px`;
         bubble!.style.height = `${this.size}px`;
     }
+
+    hide() {
+        this.updateSize(this.minSize);
+        this.pauseAnimation();
+        this.getBubbleElement()?.removeAttribute('show');
+        this.getBubbleElement()?.setAttribute('hide', '');
+    }
+
+    pauseAnimation() {
+        this.bubbleElement?.removeAttribute('idle');
+    }
+
+    playAnimation() {
+        this.bubbleElement?.setAttribute('idle', '');
+    }
+
+
+    show() {
+        this.playAnimation();
+        this.bubbleElement?.removeAttribute('hide');
+        this.bubbleElement?.setAttribute('show', '');
+    }
+
 
     getBirthplace(): Area {
         const parentHeight = this.parentElement?.clientWidth || 0;
@@ -131,9 +172,14 @@ class BBBubble extends HTMLElement {
     }
 
     size: number = 128;
+    x: number = 0;
+    y: number = 0;
+
     minSize: number = 30;
     maxSize: number = 300;
     padding: number = 50;
+
+    _died: boolean = false;
 
     getSafeSize(size: number): number {
         if (size < this.minSize) {
@@ -168,6 +214,8 @@ class BBBubble extends HTMLElement {
         }
 
         this.moveToRandomPositionWithinBirthplace();
+
+        this.show();
     }
 }
 

@@ -7,8 +7,8 @@ export function css(): string {
     .bubble {
         width: 128px;
         height: 128px;
-        top: 0px;
-        left: 0px;
+        top: 100vh;
+        left: 50vw;
         border-radius: 50%;
         transition:
             width 0.2s ease-in-out,
