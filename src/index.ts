@@ -5,10 +5,39 @@ class BBBubble extends HTMLElement {
         super();
         this.root = this.attachShadow({ mode: 'open' });
         this.root.innerHTML = `
-            <div class="bubble" idle float>
+            <div class="bubble" idle>
                 <slot></slot>
             </div>
         `;
+    }
+
+    public pauseAnimation() {
+        this.getBubbleElement()?.removeAttribute('idle');
+    }
+
+    public playAnimation() {
+        this.getBubbleElement()?.setAttribute('idle', '');
+    }
+
+    public moveTo(x: number, y: number) {
+        const bubble = this.getBubbleElement();
+        if (bubble) {
+            bubble.style.top = `${y}px`;
+            bubble.style.left = `${x}px`;
+        }
+    }
+
+    public updateSize(newSize: number) {
+        this.size = this.getSafeSize(newSize);
+
+        const bubble = this.getBubbleElement();
+
+        bubble!.style.width = `${this.size}px`;
+        bubble!.style.height = `${this.size}px`;
+    }
+
+    private getBubbleElement(): HTMLElement | null {
+        return this.root.querySelector('.bubble') as HTMLElement;
     }
 
     size: number = 128;
@@ -24,12 +53,6 @@ class BBBubble extends HTMLElement {
         return size;
     }
 
-    updateSize(newSize: number) {
-        this.size = this.getSafeSize(newSize);
-        (this.root.querySelector('.bubble') as HTMLElement)!.style.width = `${this.size}px`;
-        (this.root.querySelector('.bubble') as HTMLElement)!.style.height = `${this.size}px`;
-    }
-
     static get observedAttributes() {
         return ['size'];
     }
@@ -43,6 +66,7 @@ class BBBubble extends HTMLElement {
     connectedCallback() {
         const stylesheet = new CSSStyleSheet();
         stylesheet.replaceSync(css());
+        this.root.adoptedStyleSheets = [stylesheet];
 
         // init size from attr
         const sizeAttr = this.getAttribute('size');
@@ -50,7 +74,6 @@ class BBBubble extends HTMLElement {
             this.updateSize(parseInt(sizeAttr, 10));
         }
 
-        this.root.adoptedStyleSheets = [stylesheet];
     }
 }
 
@@ -74,11 +97,14 @@ function css(): string {
     ::host {
         display: inline-block;
     }
-    
+
     .bubble {
         width: 128px;
         height: 128px;
+        top: 0px;
+        left: 0px;
         border-radius: 50%;
+        transition: width 0.2s ease-in-out, height 0.2s ease-in-out, top 0.2s ease-in-out, left 0.2s ease-in-out;
         
         display: grid;
         place-content: center;
@@ -92,14 +118,6 @@ function css(): string {
         animation: idle 2s ease-in-out infinite;
     }
     
-    [float] {
-        animation: float 2s ease-in-out infinite;
-    }
-    
-    [float][idle] {
-        animation: float 2s ease-in-out infinite, idle 2s ease-in-out infinite;
-    }
-    
     @keyframes idle {
         0% {
             transform: scale(1);
@@ -109,18 +127,6 @@ function css(): string {
         }
         100% {
             transform: scale(1);
-        }
-    }
-    
-    @keyframes float {
-        0% {
-            top: 8px;
-        }
-        50% {
-            top: 5px;
-        }
-        100% {
-            top: 8px
         }
     }
 `
