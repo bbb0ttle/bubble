@@ -1,3 +1,6 @@
+import { css } from './style';
+import { type Area } from './area';
+
 class BBBubble extends HTMLElement {
     root: ShadowRoot;
 
@@ -10,6 +13,7 @@ class BBBubble extends HTMLElement {
             </div>
         `;
     }
+
 
     public pauseAnimation() {
         this.bubbleElement?.removeAttribute('idle');
@@ -27,8 +31,8 @@ class BBBubble extends HTMLElement {
     public moveTo(x: number, y: number) {
         const bubble = this.bubbleElement;
         if (bubble) {
-            bubble.style.top = `${y}px`;
-            bubble.style.left = `${x}px`;
+            bubble.style.top = `${this.getSafeY(y)}px`;
+            bubble.style.left = `${this.getSafeX(x)}px`;
         }
     }
 
@@ -54,6 +58,70 @@ class BBBubble extends HTMLElement {
         bubble!.style.height = `${this.size}px`;
     }
 
+    getBirthplace(): Area {
+        const parentHeight = this.parentElement?.clientWidth || 0;
+        const parentWidth = this.parentElement?.clientHeight || 0;
+
+        const areaHeight = parentHeight * .2;
+        const areaWidth = parentWidth;
+
+        return {
+            x: 0,
+            y: parentHeight - areaHeight,
+            width: areaWidth,
+            height: areaHeight
+        };
+    }
+
+    getRandomXWithinBirthplace() {
+        const birthplace = this.getBirthplace();
+        return Math.random() * birthplace.width + birthplace.x;
+    }
+
+    getRandomYWithingBirthplace() {
+        const birthplace = this.getBirthplace();
+        return Math.random() * birthplace.height + birthplace.y;
+    }
+
+    getRandomSize() {
+        return Math.random() * 50 + this.minSize;
+    }
+
+    moveToRandomPositionWithinBirthplace() {
+        const x = this.getRandomXWithinBirthplace();
+        const y = this.getRandomYWithingBirthplace();
+
+        this.moveTo(x, y);
+    }
+
+    getSafeX(x: number) {
+        if (x < this.padding) {
+            return this.padding;
+        }
+
+        // try get parent width
+        let parentWidth = this.parentElement?.clientWidth || 0;
+        if (x > parentWidth - this.size - this.padding) {
+            return parentWidth - this.size - this.padding;
+        }
+
+        return x;
+    }
+
+    getSafeY(y: number) {
+        if (y < this.padding) {
+            return this.padding;
+        }
+
+        // try get parent height
+        let parentHeight = this.parentElement?.clientHeight || 0;
+        if (y > parentHeight - this.size - this.padding) {
+            return parentHeight - this.size - this.padding;
+        }
+
+        return y;
+    }
+
     private getBubbleElement(): HTMLElement | null {
         return this.root.querySelector('.bubble') as HTMLElement;
     }
@@ -65,6 +133,7 @@ class BBBubble extends HTMLElement {
     size: number = 128;
     minSize: number = 30;
     maxSize: number = 300;
+    padding: number = 50;
 
     getSafeSize(size: number): number {
         if (size < this.minSize) {
@@ -94,8 +163,11 @@ class BBBubble extends HTMLElement {
         const sizeAttr = this.getAttribute('size');
         if (sizeAttr) {
             this.updateSize(parseInt(sizeAttr, 10));
+        } else {
+            this.updateSize(this.getRandomSize());
         }
 
+        this.moveToRandomPositionWithinBirthplace();
     }
 }
 
@@ -112,58 +184,4 @@ declare global {
     interface HTMLElementTagNameMap {
         'bubble': BBBubble;
     }
-}
-
-function css(): string {
-    return `
-    ::host {
-        display: inline-block;
-    }
-
-    .bubble {
-        width: 128px;
-        height: 128px;
-        top: 0px;
-        left: 0px;
-        border-radius: 50%;
-        transition:
-            width 0.2s ease-in-out,
-            height 0.2s ease-in-out,
-            opacity 0.2s ease-in-out,
-            top 0.2s ease-in-out,
-            left 0.2s ease-in-out;
-        
-        display: grid;
-        place-content: center;
-        
-        position: absolute;
-        
-        box-shadow: inset 0 -8px 16px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)
-    }
-    
-    [idle] {
-        animation: idle 2s ease-in-out infinite;
-    }
-
-    [visible] {
-        opacity: 1;
-    }
-
-    [hide] {
-        opacity: 0;
-    }
-
-    
-    @keyframes idle {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.03);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-`
 }
