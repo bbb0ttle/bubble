@@ -12,19 +12,37 @@ class BBBubble extends HTMLElement {
     }
 
     public pauseAnimation() {
-        this.getBubbleElement()?.removeAttribute('idle');
+        this.bubbleElement?.removeAttribute('idle');
     }
 
     public playAnimation() {
-        this.getBubbleElement()?.setAttribute('idle', '');
+        this.bubbleElement?.setAttribute('idle', '');
+    }
+
+    public eat(anotherBubble: BBBubble) {
+        anotherBubble.hide();
+        this.updateSize(this.getSafeSize(this.size + anotherBubble.size * 0.5));
     }
 
     public moveTo(x: number, y: number) {
-        const bubble = this.getBubbleElement();
+        const bubble = this.bubbleElement;
         if (bubble) {
             bubble.style.top = `${y}px`;
             bubble.style.left = `${x}px`;
         }
+    }
+
+    public hide() {
+        this.updateSize(this.minSize);
+        this.pauseAnimation();
+        this.getBubbleElement()?.removeAttribute('show');
+        this.getBubbleElement()?.setAttribute('hide', '');
+    }
+
+    public show() {
+        this.playAnimation();
+        this.bubbleElement?.removeAttribute('hide');
+        this.bubbleElement?.setAttribute('show', '');
     }
 
     public updateSize(newSize: number) {
@@ -38,6 +56,10 @@ class BBBubble extends HTMLElement {
 
     private getBubbleElement(): HTMLElement | null {
         return this.root.querySelector('.bubble') as HTMLElement;
+    }
+
+    get bubbleElement() {
+        return this.getBubbleElement();
     }
 
     size: number = 128;
@@ -104,7 +126,12 @@ function css(): string {
         top: 0px;
         left: 0px;
         border-radius: 50%;
-        transition: width 0.2s ease-in-out, height 0.2s ease-in-out, top 0.2s ease-in-out, left 0.2s ease-in-out;
+        transition:
+            width 0.2s ease-in-out,
+            height 0.2s ease-in-out,
+            opacity 0.2s ease-in-out,
+            top 0.2s ease-in-out,
+            left 0.2s ease-in-out;
         
         display: grid;
         place-content: center;
@@ -117,6 +144,15 @@ function css(): string {
     [idle] {
         animation: idle 2s ease-in-out infinite;
     }
+
+    [visible] {
+        opacity: 1;
+    }
+
+    [hide] {
+        opacity: 0;
+    }
+
     
     @keyframes idle {
         0% {
