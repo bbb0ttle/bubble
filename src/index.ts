@@ -149,16 +149,23 @@ export class BBBubble extends HTMLElement {
 
 
     getBirthplace(): Area {
-        const parentHeight = this.parent?.clientWidth || 0;
-        const parentWidth = this.parent?.clientHeight || 0;
+        const parentRect = this.parent?.getBoundingClientRect();
 
-        console.log(this.parent);
+        if (!parentRect) {
+            return {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0
+            };
+        }
 
-        const areaHeight = parentHeight * .2;
+        const areaHeight = parentRect.height * .2;
+
         return {
             x: 0,
-            y: parentHeight - areaHeight,
-            width: parentWidth,
+            y:  parentRect.height - areaHeight,
+            width: parentRect.width,
             height: areaHeight
         };
     }
@@ -252,7 +259,7 @@ export class BBBubble extends HTMLElement {
 
     minSize: number = 20;
     maxSize: number = 300;
-    padding: number = 50;
+    padding: number = 10;
 
     _died: boolean = false;
 
@@ -281,6 +288,7 @@ export class BBBubble extends HTMLElement {
         this.root.adoptedStyleSheets = [stylesheet];
 
         this.bringBackToLife()
+
     }
 }
 
