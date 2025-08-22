@@ -5,56 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>bubble</title>
     <script type="module" src="/src/index.ts"></script>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        position: relative;
-        height: 100vh;
-        width: 100%;
-        overflow: hidden;
-      }
-    </style>
-    <script>
-      // on content ready
-      document.addEventListener('DOMContentLoaded', () => {
-        // get all bubbles
-        const bubbles = Array.from(document.querySelectorAll('bb-bubble'));
-
-        const eatOthers = (a) => {
-          return Promise.all(
-            bubbles.map((o) => {
-              return a.tryEat(o);
-            })
-          );
-        }
-
-        async function feedBubblesSequentially(bubbles) {
-          await bubbles.reduce(
-            (prevPromise, currentBubble) => 
-              prevPromise.then(() => eatOthers(currentBubble)),
-            Promise.resolve()
-          );
-          
-          console.log("All bubbles have finished eating!");
-        }
-
-        setTimeout(() => {
-            feedBubblesSequentially(bubbles);
-        }, 500);
-      });
-    </script>
   </head>
   <body>
+    <bb-glass>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+      <bb-bubble></bb-bubble>
+    </bb-glass>
   </body>
-  <script>
-    const totalNum = 20;
-
-    // generate bubbles
-    for (let i = 0; i < totalNum; i++) {
-        const bubble = document.createElement('bb-bubble');
-        document.body.appendChild(bubble);
-    }
-
-  </script>
 </html>

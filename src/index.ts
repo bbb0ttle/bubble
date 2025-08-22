@@ -1,5 +1,6 @@
-import { css } from './style';
-import { type Area } from './area';
+import {css} from './style';
+import {type Area} from './area';
+import {Glass} from "./glass.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -148,16 +149,16 @@ export class BBBubble extends HTMLElement {
 
 
     getBirthplace(): Area {
-        const parentHeight = this.parentElement?.clientWidth || 0;
-        const parentWidth = this.parentElement?.clientHeight || 0;
+        const parentHeight = this.parent?.clientWidth || 0;
+        const parentWidth = this.parent?.clientHeight || 0;
+
+        console.log(this.parent);
 
         const areaHeight = parentHeight * .2;
-        const areaWidth = parentWidth;
-
         return {
             x: 0,
             y: parentHeight - areaHeight,
-            width: areaWidth,
+            width: parentWidth,
             height: areaHeight
         };
     }
@@ -212,8 +213,7 @@ export class BBBubble extends HTMLElement {
             return this.padding;
         }
 
-        // try get parent width
-        let parentWidth = this.parentElement?.clientWidth || 0;
+        let parentWidth = this.parent?.clientWidth || 0;
         if (x > parentWidth - this.size - this.padding) {
             return parentWidth - this.size - this.padding;
         }
@@ -226,8 +226,7 @@ export class BBBubble extends HTMLElement {
             return this.padding;
         }
 
-        // try get parent height
-        let parentHeight = this.parentElement?.clientHeight || 0;
+        let parentHeight = this.parent?.clientHeight || 0;
         if (y > parentHeight - this.size - this.padding) {
             return parentHeight - this.size - this.padding;
         }
@@ -241,6 +240,10 @@ export class BBBubble extends HTMLElement {
 
     get bubbleElement() {
         return this.getBubbleElement();
+    }
+
+    get parent() {
+       return (this.parentElement as Glass).glass;
     }
 
     size: number = 128;
@@ -277,7 +280,7 @@ export class BBBubble extends HTMLElement {
         stylesheet.replaceSync(css());
         this.root.adoptedStyleSheets = [stylesheet];
 
-        this.bringBackToLife();
+        this.bringBackToLife()
     }
 }
 
@@ -286,12 +289,19 @@ if (!window.customElements.get('bb-bubble')) {
     window.customElements.define('bb-bubble', BBBubble);
 }
 
+if (!window.customElements.get('bb-glass')) {
+    window.Glass = Glass;
+    window.customElements.define('bb-glass', Glass);
+}
+
 declare global {
     interface Window {
         BBBubble: typeof BBBubble;
+        Glass: typeof Glass;
     }
 
     interface HTMLElementTagNameMap {
-        'bubble': BBBubble;
+        'bb-bubble': BBBubble;
+        'bb-glass': Glass;
     }
 }
