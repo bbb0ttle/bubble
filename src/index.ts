@@ -16,15 +16,31 @@ export class BBBubble extends HTMLElement {
 
     public eat(another: BBBubble) {
         if (another == null || another == this || another.died) {
-            return;
+            return Promise.resolve();
         }
 
-        this.updateSize(this.getSafeSize(this.size + another.size * 0.5));
+        // return promise
+        return new Promise<void>((resolve) => {
+            this.updateSize(this.getSafeSize(this.size + another.size * 0.5));
+            another.died = true;
+            another.moveTo(this.x, this.y);
 
-        another.died = true;
+            setTimeout(() => {
+                resolve();
+            }, 200);
+        });
+    }
 
-        another.moveTo(this.x, this.y);
+    public tryEat(another: BBBubble) {
+        if (!this.isOverlapWith(another)) {
+            return Promise.resolve();
+        }
 
+        if (this.size < another.size) {
+            return another.eat(this);
+        } else {
+            return this.eat(another);
+        }
     }
 
     public isOverlapWith(another: BBBubble) {
@@ -74,6 +90,8 @@ export class BBBubble extends HTMLElement {
 
         bubble!.style.width = `${this.size}px`;
         bubble!.style.height = `${this.size}px`;
+
+        this.moveTo(this.x, this.y);
     }
 
     hide() {
