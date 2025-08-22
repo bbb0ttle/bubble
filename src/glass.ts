@@ -24,7 +24,7 @@ export class Glass extends HTMLElement {
         }
 
         this.bubbles.forEach(b => {
-            b.bringBackToLife()
+            b.died = false;
         })
     }
 

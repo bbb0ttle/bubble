@@ -15,32 +15,23 @@ export class BBBubble extends HTMLElement {
         `;
     }
 
-    public eat(another: BBBubble) {
-        if (this.died) {
-            return Promise.resolve(false);
-        }
-
-        if (another == null || another == this || another.died) {
-            return Promise.resolve(true);
-        }
-
-        // return promise
-        return new Promise<boolean>(async (resolve) => {
-            this.updateSize(this.getSafeSize(this.size + another.size * 0.1));
-
-            another.died = true;
-            another.moveTo(this.x + this.size / 2, this.y + this.size / 2);
-
-            await this.delay(100);
-
-            resolve(true);
-
-            this.moveToComfortZone();
-
-        });
+    static get observedAttributes() {
+        return ['size'];
     }
 
-    public tryEat(another: BBBubble) {
+    attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
+        if (name === 'size') {
+            this.updateSize(parseInt(newValue, 10));
+        }
+    }
+
+    connectedCallback() {
+        const stylesheet = new CSSStyleSheet();
+        stylesheet.replaceSync(css());
+        this.root.adoptedStyleSheets = [stylesheet];
+    }
+
+    tryEat(another: BBBubble) {
         if (!this.isOverlapWith(another)) {
             return Promise.resolve(false);
         }
@@ -52,15 +43,24 @@ export class BBBubble extends HTMLElement {
         }
     }
 
-    public isOverlapWith(another: BBBubble) {
-        // detect overlap by pos and size
-        const distBetweenBubbles = Math.sqrt(
-            Math.pow(this.x - another.x, 2) + Math.pow(this.y - another.y, 2));
-
-        return distBetweenBubbles < (this.size + another.size) / 2;
+    get died(): boolean {
+        return this._died;
     }
 
-    public moveTo(x: number, y: number, durationMs: number = 200) {
+    set died(value: boolean) {
+        this._died = value;
+
+        if (!value) {
+            this.bringBackToLife().then();
+            return;
+        }
+
+        this.riseToTheSurface().then(() => {
+            this.moveToRandomPositionWithinBirthplace();
+        });
+    }
+
+    private moveTo(x: number, y: number, durationMs: number = 200) {
         this.x = this.getSafeX(x);
         this.y = this.getSafeY(y);
 
@@ -75,22 +75,48 @@ export class BBBubble extends HTMLElement {
         }
     }
 
-    public get died(): boolean {
-        return this._died;
+    private isOverlapWith(another: BBBubble) {
+        // detect overlap by pos and size
+        const distBetweenBubbles = Math.sqrt(
+            Math.pow(this.x - another.x, 2) + Math.pow(this.y - another.y, 2));
+
+        return distBetweenBubbles < (this.size + another.size) / 2;
     }
 
-    public set died(value: boolean) {
-        this._died = value;
 
-        if (!value) {
-            this.bringBackToLife();
-            return;
+    private  eat(another: BBBubble) {
+        if (this.died) {
+            return Promise.resolve(false);
         }
 
-        this.hide();
+        if (another == null || another == this || another.died) {
+            return Promise.resolve(true);
+        }
+
+        // return promise
+        return new Promise<boolean>(async (resolve) => {
+            this.updateSize(this.getSafeSize(this.size + another.size * 0.2));
+
+            another.updateSize(this.minSize)
+            another.hide()
+
+            await this.delay(300);
+            this.moveToComfortZone();
+
+            const shouldAttract = another.y > this.y;
+            if (shouldAttract) {
+                const moveDuration = 50 + 50 * Math.random();
+                another.moveTo(this.x + this.size / 2, this.y + this.size / 2, moveDuration);
+                another.died = true;
+            }
+
+            resolve(true);
+
+        });
     }
 
-    public updateSize(newSize: number) {
+
+    private updateSize(newSize: number) {
         this.size = this.getSafeSize(newSize);
 
         const bubble = this.getBubbleElement();
@@ -101,7 +127,7 @@ export class BBBubble extends HTMLElement {
         this.moveTo(this.x, this.y);
     }
 
-    public async riseToTheSurface() {
+    private async riseToTheSurface() {
         this.moveTo(this.x, 0);
 
         await this.delay(180);
@@ -110,7 +136,7 @@ export class BBBubble extends HTMLElement {
     }
 
 
-    public async bringBackToLife() {
+    private async bringBackToLife() {
         this.updateSize(this.getRandomSize());
 
         this.moveToRandomPositionWithinBirthplace();
@@ -122,33 +148,31 @@ export class BBBubble extends HTMLElement {
         this.show();
     }
 
-    hide() {
-        this.updateSize(this.minSize);
+    private hide() {
         this.pauseAnimation();
         this.getBubbleElement()?.removeAttribute('show');
         this.getBubbleElement()?.setAttribute('hide', '');
     }
 
-    pauseAnimation() {
+    private pauseAnimation() {
         this.bubbleElement?.removeAttribute('idle');
     }
 
-    playAnimation() {
+    private playAnimation() {
         this.bubbleElement?.setAttribute('idle', '');
     }
 
-    async delay(ms: number) {
+    private async delay(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    show() {
+    private show() {
         this.playAnimation();
         this.bubbleElement?.removeAttribute('hide');
         this.bubbleElement?.setAttribute('show', '');
     }
 
-
-    getBirthplace(): Area {
+    private getBirthplace(): Area {
         const parentRect = this.parent?.getBoundingClientRect();
 
         if (!parentRect) {
@@ -170,24 +194,24 @@ export class BBBubble extends HTMLElement {
         };
     }
 
-    getRandomXWithinBirthplace() {
+    private getRandomXWithinBirthplace() {
         const birthplace = this.getBirthplace();
         return Math.random() * birthplace.width + birthplace.x;
     }
 
-    getRandomYWithingBirthplace() {
+    private getRandomYWithingBirthplace() {
         const birthplace = this.getBirthplace();
-        return Math.random() * birthplace.height + birthplace.y;
+        return birthplace.height * 5 - this.size; // Math.random() * birthplace.height + birthplace.y;
     }
 
-    getYOfComfortZone() {
+    private getYOfComfortZone() {
         const birthplace = this.getBirthplace();
         const sizeRatio = this.size / this.maxSize;
 
         return birthplace.y - birthplace.height * sizeRatio;
     }
 
-    getRandomSize() {
+    private getRandomSize() {
         const sizeAttr = this.getAttribute('size');
         if (sizeAttr) {
             return parseInt(sizeAttr, 10);
@@ -196,7 +220,7 @@ export class BBBubble extends HTMLElement {
         return Math.random() * 50 + this.minSize;
     }
 
-    moveToComfortZone() {
+    private moveToComfortZone() {
         const y = this.getYOfComfortZone();
 
         if (y > this.y) {
@@ -208,14 +232,14 @@ export class BBBubble extends HTMLElement {
         console.log("moved.")
     }
 
-    moveToRandomPositionWithinBirthplace() {
+    private moveToRandomPositionWithinBirthplace() {
         const x = this.getRandomXWithinBirthplace();
         const y = this.getRandomYWithingBirthplace();
 
         this.moveTo(x, y);
     }
 
-    getSafeX(x: number) {
+    private getSafeX(x: number) {
         if (x < this.padding) {
             return this.padding;
         }
@@ -228,7 +252,7 @@ export class BBBubble extends HTMLElement {
         return x;
     }
 
-    getSafeY(y: number) {
+    private getSafeY(y: number) {
         if (y < this.padding) {
             return this.padding;
         }
@@ -245,50 +269,31 @@ export class BBBubble extends HTMLElement {
         return this.root.querySelector('.bubble') as HTMLElement;
     }
 
-    get bubbleElement() {
+    private get bubbleElement() {
         return this.getBubbleElement();
     }
 
-    get parent() {
+    private get parent() {
        return (this.parentElement as Glass).glass;
     }
 
-    size: number = 128;
-    x: number = 0;
-    y: number = 0;
+    private size: number = 128;
+    private x: number = 0;
+    private y: number = 0;
 
-    minSize: number = 20;
-    maxSize: number = 300;
-    padding: number = 10;
+    private minSize: number = 20;
+    private maxSize: number = 300;
+    private padding: number = 10;
 
-    _died: boolean = false;
+    private _died: boolean = false;
 
-    getSafeSize(size: number): number {
+    private getSafeSize(size: number): number {
         if (size < this.minSize) {
             return this.minSize;
         } else if (size > this.maxSize) {
             return this.maxSize;
         }
         return size;
-    }
-
-    static get observedAttributes() {
-        return ['size'];
-    }
-
-    attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
-        if (name === 'size') {
-            this.updateSize(parseInt(newValue, 10));
-        }
-    }
-
-    connectedCallback() {
-        const stylesheet = new CSSStyleSheet();
-        stylesheet.replaceSync(css());
-        this.root.adoptedStyleSheets = [stylesheet];
-
-        this.bringBackToLife()
-
     }
 }
 
