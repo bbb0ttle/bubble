@@ -24,14 +24,18 @@ export class BBBubble extends HTMLElement {
         }
 
         // return promise
-        return new Promise<boolean>((resolve) => {
+        return new Promise<boolean>(async (resolve) => {
             this.updateSize(this.getSafeSize(this.size + another.size * 0.1));
+
             another.died = true;
             another.moveTo(this.x + this.size / 2, this.y + this.size / 2);
 
-            setTimeout(() => {
-                resolve(true);
-            }, 100);
+            await this.delay(100);
+
+            resolve(true);
+
+            this.moveToComfortZone();
+
         });
     }
 
@@ -55,12 +59,16 @@ export class BBBubble extends HTMLElement {
         return distBetweenBubbles < (this.size + another.size) / 2;
     }
 
-    public moveTo(x: number, y: number) {
+    public moveTo(x: number, y: number, durationMs: number = 200) {
         this.x = this.getSafeX(x);
         this.y = this.getSafeY(y);
 
+        // update top, left transition duration
+
+
         const bubble = this.bubbleElement;
         if (bubble) {
+            bubble.style.transitionDuration = `${durationMs}ms`;
             bubble.style.top = `${this.y}px`;
             bubble.style.left = `${this.x}px`;
         }
@@ -92,14 +100,25 @@ export class BBBubble extends HTMLElement {
         this.moveTo(this.x, this.y);
     }
 
-    public bringBackToLife() {
+    public async riseToTheSurface() {
+        this.moveTo(this.x, 0);
+
+        await this.delay(180);
+
+        this.hide();
+    }
+
+
+    public async bringBackToLife() {
         this.updateSize(this.getRandomSize());
 
         this.moveToRandomPositionWithinBirthplace();
 
-        setTimeout(() => {
-            this.show();
-        }, 200)
+        const delay = 100 + 100 * Math.random();
+
+        await this.delay(delay);
+
+        this.show();
     }
 
     hide() {
@@ -117,6 +136,9 @@ export class BBBubble extends HTMLElement {
         this.bubbleElement?.setAttribute('idle', '');
     }
 
+    async delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     show() {
         this.playAnimation();
@@ -150,6 +172,13 @@ export class BBBubble extends HTMLElement {
         return Math.random() * birthplace.height + birthplace.y;
     }
 
+    getYOfComfortZone() {
+        const birthplace = this.getBirthplace();
+        const sizeRatio = this.size / this.maxSize;
+
+        return birthplace.y - birthplace.height * sizeRatio;
+    }
+
     getRandomSize() {
         const sizeAttr = this.getAttribute('size');
         if (sizeAttr) {
@@ -157,6 +186,18 @@ export class BBBubble extends HTMLElement {
         }
 
         return Math.random() * 50 + this.minSize;
+    }
+
+    moveToComfortZone() {
+        const y = this.getYOfComfortZone();
+
+        if (y > this.y) {
+            console.log('cancel. y:', y, 'is greater than current y:', this.y);
+            return;
+        }
+
+        this.moveTo(this.x, y, 500 + 100 * Math.random());
+        console.log("moved.")
     }
 
     moveToRandomPositionWithinBirthplace() {
@@ -206,7 +247,7 @@ export class BBBubble extends HTMLElement {
     x: number = 0;
     y: number = 0;
 
-    minSize: number = 30;
+    minSize: number = 20;
     maxSize: number = 300;
     padding: number = 50;
 

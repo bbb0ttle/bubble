@@ -39,16 +39,16 @@
           console.log("All bubbles have finished eating!");
         }
 
-        window.mergeBubbles = () => {
-          feedBubblesSequentially(bubbles);
-        }
+        setTimeout(() => {
+            feedBubblesSequentially(bubbles);
+        }, 500);
       });
     </script>
   </head>
   <body>
   </body>
   <script>
-    const totalNum = 50;
+    const totalNum = 20;
 
     // generate bubbles
     for (let i = 0; i < totalNum; i++) {
