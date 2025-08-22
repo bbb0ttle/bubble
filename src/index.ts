@@ -15,25 +15,29 @@ export class BBBubble extends HTMLElement {
     }
 
     public eat(another: BBBubble) {
+        if (this.died) {
+            return Promise.resolve(false);
+        }
+
         if (another == null || another == this || another.died) {
-            return Promise.resolve();
+            return Promise.resolve(true);
         }
 
         // return promise
-        return new Promise<void>((resolve) => {
-            this.updateSize(this.getSafeSize(this.size + another.size * 0.5));
+        return new Promise<boolean>((resolve) => {
+            this.updateSize(this.getSafeSize(this.size + another.size * 0.1));
             another.died = true;
-            another.moveTo(this.x, this.y);
+            another.moveTo(this.x + this.size / 2, this.y + this.size / 2);
 
             setTimeout(() => {
-                resolve();
-            }, 200);
+                resolve(true);
+            }, 100);
         });
     }
 
     public tryEat(another: BBBubble) {
         if (!this.isOverlapWith(another)) {
-            return Promise.resolve();
+            return Promise.resolve(false);
         }
 
         if (this.size < another.size) {
@@ -70,13 +74,7 @@ export class BBBubble extends HTMLElement {
         this._died = value;
 
         if (!value) {
-            this.moveToRandomPositionWithinBirthplace();
-
-            // delay .2s and show
-            setTimeout(() => {
-                this.show();
-            }, 200);
-
+            this.bringBackToLife();
             return;
         }
 
@@ -92,6 +90,16 @@ export class BBBubble extends HTMLElement {
         bubble!.style.height = `${this.size}px`;
 
         this.moveTo(this.x, this.y);
+    }
+
+    public bringBackToLife() {
+        this.updateSize(this.getRandomSize());
+
+        this.moveToRandomPositionWithinBirthplace();
+
+        setTimeout(() => {
+            this.show();
+        }, 200)
     }
 
     hide() {
@@ -143,6 +151,11 @@ export class BBBubble extends HTMLElement {
     }
 
     getRandomSize() {
+        const sizeAttr = this.getAttribute('size');
+        if (sizeAttr) {
+            return parseInt(sizeAttr, 10);
+        }
+
         return Math.random() * 50 + this.minSize;
     }
 
@@ -223,17 +236,7 @@ export class BBBubble extends HTMLElement {
         stylesheet.replaceSync(css());
         this.root.adoptedStyleSheets = [stylesheet];
 
-        // init size from attr
-        const sizeAttr = this.getAttribute('size');
-        if (sizeAttr) {
-            this.updateSize(parseInt(sizeAttr, 10));
-        } else {
-            this.updateSize(this.getRandomSize());
-        }
-
-        this.moveToRandomPositionWithinBirthplace();
-
-        this.show();
+        this.bringBackToLife();
     }
 }
 
