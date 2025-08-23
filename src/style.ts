@@ -3,7 +3,7 @@ export function css(): string {
     ::host {
         display: inline-block;
     }
-
+    
     .bubble {
         width: 128px;
         height: 128px;
@@ -22,7 +22,9 @@ export function css(): string {
         
         position: absolute;
         
-        box-shadow: inset 0 -8px 16px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)
+        box-shadow: inset 0 -8px 16px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+        
+        color: #ccc;
     }
     
     [clicked] {
