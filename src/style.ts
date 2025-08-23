@@ -47,6 +47,7 @@ export function css(): string {
         }
         50% {
             transform: scale(1.2);
+            opacity: 1;
         }
         100% {
             transform: scale(1);

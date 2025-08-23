@@ -73,6 +73,9 @@ export class Glass extends HTMLElement {
 
         setInterval(() => {
             const bubble = this.getRandomBubble();
+            if (bubble.immortal) {
+                return;
+            }
 
             if (bubble.growUp && !bubble.died) {
                 bubble.died = true;

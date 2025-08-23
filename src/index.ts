@@ -16,12 +16,26 @@ export class BBBubble extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['size'];
+        return ['size', 'immortal', 'x', 'y'];
     }
 
     attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
         if (name === 'size') {
             this.updateSize(parseInt(newValue, 10));
+        }
+
+        if (name === 'immortal') {
+            this._immortal = newValue == 'true';
+        }
+
+        if (name === 'x') {
+            this.x = parseInt(newValue, 10);
+            this.moveTo(this.x, this.y);
+        }
+
+        if (name === 'y') {
+            this.y = parseInt(newValue, 10);
+            this.moveTo(this.x, this.y);
         }
     }
 
@@ -34,6 +48,16 @@ export class BBBubble extends HTMLElement {
         this.addEventListener('click', this.handleClick, {
             capture: false
         });
+
+        // set immortal from attr
+        const immortalAttr = this.getAttribute('immortal');
+        this._immortal = immortalAttr == 'true';
+
+        if (this._immortal) {
+            this.updateSize(this.getNumAttr("size", 80));
+            this.x = this.getNumAttr("x", 100);
+            this.y = this.getNumAttr("y", 100);
+        }
     }
 
     disconnectedCallback() {
@@ -57,6 +81,10 @@ export class BBBubble extends HTMLElement {
     }
 
     set died(value: boolean) {
+        if (this._immortal && value) {
+            return;
+        }
+
         this._died = value;
 
         if (!value) {
@@ -100,6 +128,13 @@ export class BBBubble extends HTMLElement {
         });
     }
 
+    private getNumAttr(attrName: string, defaultValue: number): number {
+        const attr = this.getAttribute(attrName);
+        if (attr) {
+            return parseInt(attr, 10);
+        }
+        return defaultValue;
+    }
 
     private moveTo(x: number, y: number, durationMs: number = 200) {
         this.x = this.getSafeX(x);
@@ -130,7 +165,7 @@ export class BBBubble extends HTMLElement {
             return Promise.resolve(false);
         }
 
-        if (another == null || another == this || another.died) {
+        if (another == null || another == this || another.died || another._immortal) {
             return Promise.resolve(true);
         }
 
@@ -179,9 +214,13 @@ export class BBBubble extends HTMLElement {
     private async bringBackToLife() {
         this._growUp = false;
 
-        this.updateSize(this.getRandomSize());
-
-        this.moveToRandomPositionWithinBirthplace();
+        if (!this._immortal) {
+            this.updateSize(this.getRandomSize());
+            this.moveToRandomPositionWithinBirthplace();
+        } else {
+            this.updateSize(this.size);
+            this.moveTo(this.x, this.y);
+        }
 
         const delay = 100 + 100 * Math.random();
 
@@ -359,6 +398,7 @@ export class BBBubble extends HTMLElement {
     private maxRiseDuration = 600;
     private minRiseDuration = 200;
 
+    private _immortal: boolean = false;
 
     private _died: boolean = false;
 
@@ -366,6 +406,10 @@ export class BBBubble extends HTMLElement {
 
     public get growUp() {
         return this._growUp;
+    }
+
+    public get immortal() {
+        return this._immortal;
     }
 
     private getSafeSize(size: number): number {
