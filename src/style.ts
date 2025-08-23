@@ -34,7 +34,7 @@ export function css(): string {
     }
 
     [hide] {
-        opacity: 0;
+        opacity: 0 !important;
     }
 
     

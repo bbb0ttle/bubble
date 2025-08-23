@@ -51,14 +51,13 @@ export class BBBubble extends HTMLElement {
         this._died = value;
 
         if (!value) {
-            this.bringBackToLife().then();
+            this.bringBackToLife().then(() => {
+                this.updateOpacity(this.getOpacityBySize(this.size))
+            });
             return;
         }
 
-        this.riseToTheSurface().then(async () => {
-            await this.delay(300)
-            this.moveToRandomPositionWithinBirthplace();
-        });
+        this.riseToTheSurface().then()
     }
 
     private moveTo(x: number, y: number, durationMs: number = 200) {
@@ -124,14 +123,13 @@ export class BBBubble extends HTMLElement {
 
         bubble!.style.width = `${this.size}px`;
         bubble!.style.height = `${this.size}px`;
-
-        this.moveTo(this.x, this.y);
     }
 
     private async riseToTheSurface() {
-        this.moveTo(this.x, 0);
+        const duration =  this.getRiseDurationBySize(this.size);
+        this.moveTo(this.x, 0, duration);
 
-        await this.delay(180);
+        await this.delay(duration - 100);
 
         this.hide();
     }
@@ -149,11 +147,13 @@ export class BBBubble extends HTMLElement {
         await this.delay(delay);
 
         this.show();
+
+        await this.delay(delay);
     }
 
     private hide() {
         this.pauseAnimation();
-        this.getBubbleElement()?.removeAttribute('show');
+        this.getBubbleElement()?.removeAttribute('visible');
         this.getBubbleElement()?.setAttribute('hide', '');
     }
 
@@ -172,10 +172,14 @@ export class BBBubble extends HTMLElement {
     private show() {
         this.playAnimation();
         this.bubbleElement?.removeAttribute('hide');
-        this.bubbleElement?.setAttribute('show', '');
+        this.bubbleElement?.setAttribute('visible', '');
         this.delay(300).then(() => {
             this.eatOthers();
         });
+    }
+
+    private updateOpacity(opacity: number) {
+        this.bubbleElement!.style.opacity = `${opacity}`;
     }
 
     private getBirthplace(): Area {
@@ -223,7 +227,7 @@ export class BBBubble extends HTMLElement {
             return parseInt(sizeAttr, 10);
         }
 
-        return Math.random() * 50 + this.minSize;
+        return Math.random() * 60 + this.minSize;
     }
 
     private async moveToComfortZone() {
@@ -280,6 +284,16 @@ export class BBBubble extends HTMLElement {
         return y;
     }
 
+    private getOpacityBySize(size: number) {
+        const ratio = (size - this.minSize) / (this.maxSize - this.minSize);
+        return this.minOpacity + (this.maxOpacity - this.minOpacity) * ratio;
+    }
+
+    private getRiseDurationBySize(size: number) {
+        const ratio = (size - this.minSize) / (this.maxSize - this.minSize);
+        return this.maxRiseDuration - (this.maxRiseDuration - this.minRiseDuration) * (1 - ratio);
+    }
+
     private getBubbleElement(): HTMLElement | null {
         return this.root.querySelector('.bubble') as HTMLElement;
     }
@@ -297,8 +311,13 @@ export class BBBubble extends HTMLElement {
     private y: number = 0;
 
     private minSize: number = 20;
-    private maxSize: number = 300;
+    private maxSize: number = 200;
+    private minOpacity: number = .5;
+    private maxOpacity: number = 1.0;
     private padding: number = 10;
+    private maxRiseDuration = 600;
+    private minRiseDuration = 200;
+
 
     private _died: boolean = false;
 
