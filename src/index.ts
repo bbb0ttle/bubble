@@ -29,6 +29,15 @@ export class BBBubble extends HTMLElement {
         const stylesheet = new CSSStyleSheet();
         stylesheet.replaceSync(css());
         this.root.adoptedStyleSheets = [stylesheet];
+
+        // add click listener
+        this.addEventListener('click', this.handleClick, {
+            capture: false
+        });
+    }
+
+    disconnectedCallback() {
+        this.removeEventListener('click', this.handleClick);
     }
 
     tryEat(another: BBBubble) {
@@ -61,6 +70,36 @@ export class BBBubble extends HTMLElement {
             this._growUp = false;
         })
     }
+
+    private async handleClick() {
+        if (this.died) {
+            return;
+        }
+
+        this.scaleInOut();
+
+        await this.delay(200);
+
+        if (!this.growUp) {
+            this.moveToComfortZone().then(() => {
+                this._growUp = true;
+            })
+            return;
+        }
+
+        this.died = true;
+
+    }
+
+    private scaleInOut() {
+        const bubble = this.bubbleElement;
+        bubble?.removeAttribute('idle');
+        this.bubbleElement!.setAttribute('clicked', '');
+        this.delay(200).then(() => {
+            bubble?.removeAttribute('clicked');
+        });
+    }
+
 
     private moveTo(x: number, y: number, durationMs: number = 200) {
         this.x = this.getSafeX(x);
