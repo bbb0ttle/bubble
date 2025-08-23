@@ -81,8 +81,8 @@ export class Glass extends HTMLElement {
 
             if (!bubble.growUp && bubble.died) {
                 bubble.died = false;
+                return;
             }
-
         }, 600);
     }
 

@@ -57,7 +57,9 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        this.riseToTheSurface().then()
+        this.riseToTheSurface().then(() => {
+            this._growUp = false;
+        })
     }
 
     private moveTo(x: number, y: number, durationMs: number = 200) {
@@ -311,7 +313,7 @@ export class BBBubble extends HTMLElement {
     private y: number = 0;
 
     private minSize: number = 20;
-    private maxSize: number = 200;
+    private maxSize: number = 160;
     private minOpacity: number = .5;
     private maxOpacity: number = 1.0;
     private padding: number = 10;
