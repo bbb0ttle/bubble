@@ -28,11 +28,11 @@ export class Glass extends HTMLElement {
         })
     }
 
-    private eatOthers = (a: BBBubble) => {
-        return Promise.all(
-            this.bubbles.map((o) => {
-                return a.tryEat(o);
-            })
+    public eatOthers = (a: BBBubble) => {
+        return this.bubbles.reduce(
+            (prevPromise, currentBubble) =>
+                prevPromise.then(() => a.tryEat(currentBubble).then()),
+            Promise.resolve()
         );
     }
 
@@ -40,14 +40,6 @@ export class Glass extends HTMLElement {
         const index = Math.floor(Math.random() * this.bubbles.length);
         return this.bubbles[index];
     }
-
-    private async feedBubblesSequentially() {
-        await this.bubbles.reduce(
-            (prevPromise, currentBubble) =>
-                prevPromise.then(() => this.eatOthers(currentBubble).then()),
-            Promise.resolve()
-        );
-      }
 
     public get glass(): HTMLElement | null {
         return this.root.querySelector('.glass') as HTMLElement;
@@ -77,16 +69,10 @@ export class Glass extends HTMLElement {
 
         this.collectBubblesFromSlot();
 
-        await this.delay(500);
-
-        this.feedBubblesSequentially();
-
         await this.delay(2000);
 
         setInterval(() => {
             const bubble = this.getRandomBubble();
-
-            this.feedBubblesSequentially();
 
             if (bubble.growUp && !bubble.died) {
                 bubble.died = true;
@@ -96,7 +82,8 @@ export class Glass extends HTMLElement {
             if (!bubble.growUp && bubble.died) {
                 bubble.died = false;
             }
-        }, 500 + Math.random() * 500);
+
+        }, 600);
     }
 
     private async delay(ms: number) {

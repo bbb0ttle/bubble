@@ -55,7 +55,8 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        this.riseToTheSurface().then(() => {
+        this.riseToTheSurface().then(async () => {
+            await this.delay(300)
             this.moveToRandomPositionWithinBirthplace();
         });
     }
@@ -172,6 +173,9 @@ export class BBBubble extends HTMLElement {
         this.playAnimation();
         this.bubbleElement?.removeAttribute('hide');
         this.bubbleElement?.setAttribute('show', '');
+        this.delay(300).then(() => {
+            this.eatOthers();
+        });
     }
 
     private getBirthplace(): Area {
@@ -233,7 +237,13 @@ export class BBBubble extends HTMLElement {
         const duration = 500 + 100 * Math.random();
         this.moveTo(this.x, y, duration);
         await this.delay(duration);
+        this.eatOthers();
         this._growUp = true;
+    }
+
+    private eatOthers() {
+        const pe = this.parentElement as Glass
+        pe?.eatOthers(this);
     }
 
     private moveToRandomPositionWithinBirthplace() {
