@@ -137,6 +137,8 @@ export class BBBubble extends HTMLElement {
 
 
     private async bringBackToLife() {
+        this._growUp = false;
+
         this.updateSize(this.getRandomSize());
 
         this.moveToRandomPositionWithinBirthplace();
@@ -208,7 +210,7 @@ export class BBBubble extends HTMLElement {
         const birthplace = this.getBirthplace();
         const sizeRatio = this.size / this.maxSize;
 
-        return birthplace.y - birthplace.height * sizeRatio;
+        return birthplace.y - birthplace.height * sizeRatio * 3.0;
     }
 
     private getRandomSize() {
@@ -220,7 +222,7 @@ export class BBBubble extends HTMLElement {
         return Math.random() * 50 + this.minSize;
     }
 
-    private moveToComfortZone() {
+    private async moveToComfortZone() {
         const y = this.getYOfComfortZone();
 
         if (y > this.y) {
@@ -228,14 +230,17 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        this.moveTo(this.x, y, 500 + 100 * Math.random());
-        console.log("moved.")
+        const duration = 500 + 100 * Math.random();
+        this.moveTo(this.x, y, duration);
+        await this.delay(duration);
+        this._growUp = true;
     }
 
     private moveToRandomPositionWithinBirthplace() {
         const x = this.getRandomXWithinBirthplace();
         const y = this.getRandomYWithingBirthplace();
 
+        this._growUp = false;
         this.moveTo(x, y);
     }
 
@@ -286,6 +291,12 @@ export class BBBubble extends HTMLElement {
     private padding: number = 10;
 
     private _died: boolean = false;
+
+    private _growUp: boolean = false;
+
+    public get growUp() {
+        return this._growUp;
+    }
 
     private getSafeSize(size: number): number {
         if (size < this.minSize) {

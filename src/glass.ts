@@ -13,9 +13,9 @@ export class Glass extends HTMLElement {
         `;
     }
 
-    bubbles: BBBubble[] = [];
+    private bubbles: BBBubble[] = [];
 
-    collectBubblesFromSlot() {
+    private collectBubblesFromSlot() {
         const slot = this.root.querySelector('slot');
         if (slot) {
             this.bubbles = Array.from(slot.assignedElements()).filter(el => el instanceof BBBubble) as BBBubble[];
@@ -28,27 +28,32 @@ export class Glass extends HTMLElement {
         })
     }
 
-  eatOthers = (a: BBBubble) => {
-    return Promise.all(
-      this.bubbles.map((o) => {
-        return a.tryEat(o);
-      })
-    );
-  }
+    private eatOthers = (a: BBBubble) => {
+        return Promise.all(
+            this.bubbles.map((o) => {
+                return a.tryEat(o);
+            })
+        );
+    }
 
-  async feedBubblesSequentially() {
-    await this.bubbles.reduce(
-      (prevPromise, currentBubble) =>
-        prevPromise.then(() => this.eatOthers(currentBubble).then()),
-      Promise.resolve()
-    );
-  }
+    private getRandomBubble() {
+        const index = Math.floor(Math.random() * this.bubbles.length);
+        return this.bubbles[index];
+    }
+
+    private async feedBubblesSequentially() {
+        await this.bubbles.reduce(
+            (prevPromise, currentBubble) =>
+                prevPromise.then(() => this.eatOthers(currentBubble).then()),
+            Promise.resolve()
+        );
+      }
 
     public get glass(): HTMLElement | null {
         return this.root.querySelector('.glass') as HTMLElement;
     }
 
-    public connectedCallback() {
+    public async connectedCallback() {
         const styleSheet = new CSSStyleSheet();
 
         styleSheet.replaceSync(`
@@ -72,9 +77,30 @@ export class Glass extends HTMLElement {
 
         this.collectBubblesFromSlot();
 
-        setTimeout(() => {
+        await this.delay(500);
+
+        this.feedBubblesSequentially();
+
+        await this.delay(2000);
+
+        setInterval(() => {
+            const bubble = this.getRandomBubble();
+
             this.feedBubblesSequentially();
-        }, 500)
+
+            if (bubble.growUp && !bubble.died) {
+                bubble.died = true;
+                return;
+            }
+
+            if (!bubble.growUp && bubble.died) {
+                bubble.died = false;
+            }
+        }, 500 + Math.random() * 500);
+    }
+
+    private async delay(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     public disconnectedCallback() {
