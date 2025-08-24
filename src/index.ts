@@ -45,9 +45,7 @@ export class BBBubble extends HTMLElement {
         this.root.adoptedStyleSheets = [stylesheet];
 
         // add click listener
-        this.addEventListener('click', this.handleClick, {
-            capture: false
-        });
+        this.addEventListener('click', this.handleClick);
 
         // set immortal from attr
         const immortalAttr = this.getAttribute('immortal');
@@ -105,6 +103,11 @@ export class BBBubble extends HTMLElement {
         }
 
         this.scaleInOut();
+
+        if (this._immortal) {
+            const pe = this.parentElement as Glass
+            pe.wakeBubblesUp();
+        }
 
         await this.delay(200);
 

@@ -37,8 +37,8 @@ export class Glass extends HTMLElement {
         return this.bubbles[index];
     }
 
-    private wakeBubblesUp() {
-        return this.bubbles.reduce(
+    public wakeBubblesUp() {
+        return this.bubbles.filter(b => b.died).reduce(
             (prevPromise, currentBubble) =>
                 prevPromise.then(async () => {
                     currentBubble.died = false;
