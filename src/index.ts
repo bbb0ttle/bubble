@@ -105,6 +105,10 @@ export class BBBubble extends HTMLElement {
         })
     }
 
+    private updateTouchable(canTouch: boolean) {
+        this.bubbleElement!.style.pointerEvents = canTouch ? 'default' : 'none';
+    }
+
     private async handleClick() {
         this.scaleInOut().then();
 
@@ -240,6 +244,7 @@ export class BBBubble extends HTMLElement {
         const duration =  this.getRiseDurationBySize(this.size);
         await this.moveTo(this.x, 0, duration);
         await this.hide();
+        this.updateTouchable(false);
     }
 
 
@@ -257,6 +262,8 @@ export class BBBubble extends HTMLElement {
         await this.updateOpacity(this.getOpacityBySize(this.size));
 
         await this.show();
+
+        this.updateTouchable(true);
 
         this.eatOthers();
     }
