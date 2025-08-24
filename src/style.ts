@@ -7,10 +7,12 @@ export function css(): string {
     ::slotted(*) {
         object-fit: cover;
         opacity: 0.2;
-        // filter: grayscale(1) blur(2px);
+        filter: grayscale(1) blur(2px);
+        transition: opacity 0.1s;
     }
     
     .bubble {
+        opacity: 0;
         width: 128px;
         height: 128px;
         top: 100vh;
@@ -32,7 +34,7 @@ export function css(): string {
         
         box-shadow: inset 0 -8px 16px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
         
-        color: #ccc;
+        color: #efefef;
     }
     
     [clicked] {

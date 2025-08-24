@@ -22,10 +22,6 @@ export class Glass extends HTMLElement {
         } else {
             this.bubbles = [];
         }
-
-        this.bubbles.forEach(b => {
-            b.died = false;
-        })
     }
 
     public eatOthers = (a: BBBubble) => {
@@ -39,6 +35,17 @@ export class Glass extends HTMLElement {
     private getRandomBubble() {
         const index = Math.floor(Math.random() * this.bubbles.length);
         return this.bubbles[index];
+    }
+
+    private wakeBubblesUp() {
+        return this.bubbles.reduce(
+            (prevPromise, currentBubble) =>
+                prevPromise.then(async () => {
+                    currentBubble.died = false;
+                    await this.delay(50 + Math.random() * 100);
+                }),
+            Promise.resolve()
+        );
     }
 
     public get glass(): HTMLElement | null {
@@ -68,6 +75,8 @@ export class Glass extends HTMLElement {
         this.root.adoptedStyleSheets = [styleSheet];
 
         this.collectBubblesFromSlot();
+
+        this.wakeBubblesUp();
 
         await this.delay(2000);
 

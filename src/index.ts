@@ -9,7 +9,7 @@ export class BBBubble extends HTMLElement {
         super();
         this.root = this.attachShadow({ mode: 'open' });
         this.root.innerHTML = `
-            <div class="bubble" idle hide>
+            <div class="bubble" idle>
                 <slot></slot>
             </div>
         `;
@@ -400,7 +400,7 @@ export class BBBubble extends HTMLElement {
 
     private _immortal: boolean = false;
 
-    private _died: boolean = false;
+    private _died: boolean = true;
 
     private _growUp: boolean = false;
 
