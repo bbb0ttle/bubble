@@ -4,6 +4,12 @@ export function css(): string {
         display: inline-block;
     }
     
+    ::slotted(*) {
+        object-fit: cover;
+        opacity: 0.2;
+        // filter: grayscale(1) blur(2px);
+    }
+    
     .bubble {
         width: 128px;
         height: 128px;
@@ -19,6 +25,8 @@ export function css(): string {
         
         display: grid;
         place-content: center;
+        
+        overflow: hidden;
         
         position: absolute;
         
