@@ -83,33 +83,41 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        this._died = value;
-
         if (!value) {
             this.bringBackToLife().then(() => {
-                this.updateOpacity(this.getOpacityBySize(this.size))
+                this._died = false;
+
+                this.dispatchEvent(new CustomEvent("bubble-born", {
+                    bubbles: true,
+                }))
             });
+
             return;
         }
 
         this.riseToTheSurface().then(() => {
             this._growUp = false;
+            this._died = true;
+
+            this.dispatchEvent(new CustomEvent("bubble-died", {
+                bubbles: true,
+            }))
         })
     }
 
     private async handleClick() {
-        if (this.died) {
-            return;
-        }
-
-        this.scaleInOut();
+        this.scaleInOut().then();
 
         if (this._immortal) {
             const pe = this.parentElement as Glass
             pe.wakeBubblesUp();
         }
 
-        await this.delay(200);
+        if (this.died) {
+            return;
+        }
+
+        await this.delay(this.getTransitionDuration());
 
         if (!this.growUp) {
             this.moveToComfortZone().then(() => {
@@ -122,13 +130,12 @@ export class BBBubble extends HTMLElement {
 
     }
 
-    private scaleInOut() {
+    private async scaleInOut() {
         const bubble = this.bubbleElement;
         bubble?.removeAttribute('idle');
         this.bubbleElement!.setAttribute('clicked', '');
-        this.delay(200).then(() => {
-            bubble?.removeAttribute('clicked');
-        });
+        await this.delay(this.defaultDurationMs);
+        bubble?.removeAttribute('clicked');
     }
 
     private getNumAttr(attrName: string, defaultValue: number): number {
@@ -139,19 +146,43 @@ export class BBBubble extends HTMLElement {
         return defaultValue;
     }
 
-    private moveTo(x: number, y: number, durationMs: number = 200) {
+    private async moveTo(x: number, y: number, durationMs: number = -1) {
+        if (durationMs > 0) {
+            this.updateTransitionDuration(durationMs)
+        }
+
         this.x = this.getSafeX(x);
         this.y = this.getSafeY(y);
 
-        // update top, left transition duration
-
-
         const bubble = this.bubbleElement;
         if (bubble) {
-            bubble.style.transitionDuration = `${durationMs}ms`;
             bubble.style.top = `${this.y}px`;
             bubble.style.left = `${this.x}px`;
         }
+
+        if (durationMs > 0) {
+            await this.delay(durationMs);
+        }
+    }
+
+    private updateTransitionDuration(ms: number) {
+        const bubble = this.bubbleElement;
+
+        if (bubble) {
+            bubble.style.transitionDuration = `${ms}ms`;
+        }
+    }
+
+    private getTransitionDuration() {
+        // get ms
+        const bubble = this.bubbleElement;
+        if (bubble) {
+            let style = bubble.style.transitionDuration;
+            style.replace("ms", "");
+            return parseInt(style, 10);
+        }
+
+        return this.defaultDurationMs;
     }
 
     private isOverlapWith(another: BBBubble) {
@@ -163,8 +194,8 @@ export class BBBubble extends HTMLElement {
     }
 
 
-    private  eat(another: BBBubble) {
-        if (this.died) {
+    private eat(another: BBBubble) {
+        if (this.died || this._immortal) {
             return Promise.resolve(false);
         }
 
@@ -174,20 +205,19 @@ export class BBBubble extends HTMLElement {
 
         // return promise
         return new Promise<boolean>(async (resolve) => {
-            this.updateSize(this.getSafeSize(this.size + another.size * 0.2));
+            another.updateSize(this.minSize).then();
+            another.hide().then();
 
-            another.updateSize(this.minSize)
-            another.hide()
-
-            await this.delay(300);
-            this.moveToComfortZone();
+            await this.updateSize(this.getSafeSize(this.size + another.size * 0.2));
 
             const shouldAttract = another.y > this.y;
             if (shouldAttract) {
                 const moveDuration = 50 + 50 * Math.random();
-                another.moveTo(this.x + this.size / 2, this.y + this.size / 2, moveDuration);
+                await another.moveTo(this.x + this.size / 2, this.y + this.size / 2, moveDuration);
                 another.died = true;
             }
+
+            await this.moveToComfortZone();
 
             resolve(true);
 
@@ -195,22 +225,21 @@ export class BBBubble extends HTMLElement {
     }
 
 
-    private updateSize(newSize: number) {
+    private async updateSize(newSize: number) {
         this.size = this.getSafeSize(newSize);
 
         const bubble = this.getBubbleElement();
 
         bubble!.style.width = `${this.size}px`;
         bubble!.style.height = `${this.size}px`;
+
+        await this.delay(this.getTransitionDuration());
     }
 
     private async riseToTheSurface() {
         const duration =  this.getRiseDurationBySize(this.size);
-        this.moveTo(this.x, 0, duration);
-
-        await this.delay(duration - 100);
-
-        this.hide();
+        await this.moveTo(this.x, 0, duration);
+        await this.hide();
     }
 
 
@@ -218,26 +247,25 @@ export class BBBubble extends HTMLElement {
         this._growUp = false;
 
         if (!this._immortal) {
-            this.updateSize(this.getRandomSize());
-            this.moveToRandomPositionWithinBirthplace();
+            await this.updateSize(this.getRandomSize());
+            await this.moveToRandomPositionWithinBirthplace();
         } else {
-            this.updateSize(this.size);
-            this.moveTo(this.x, this.y);
+            await this.updateSize(this.size);
+            await this.moveTo(this.x, this.y);
         }
 
-        const delay = 100 + 100 * Math.random();
+        await this.updateOpacity(this.getOpacityBySize(this.size));
 
-        await this.delay(delay);
+        await this.show();
 
-        this.show();
-
-        await this.delay(delay);
+        this.eatOthers();
     }
 
-    private hide() {
+    private async hide() {
         this.pauseAnimation();
         this.getBubbleElement()?.removeAttribute('visible');
         this.getBubbleElement()?.setAttribute('hide', '');
+        await this.delay(this.defaultDurationMs);
     }
 
     private pauseAnimation() {
@@ -252,17 +280,16 @@ export class BBBubble extends HTMLElement {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    private show() {
+    private async show() {
         this.playAnimation();
         this.bubbleElement?.removeAttribute('hide');
         this.bubbleElement?.setAttribute('visible', '');
-        this.delay(300).then(() => {
-            this.eatOthers();
-        });
+        await this.delay(this.defaultDurationMs);
     }
 
-    private updateOpacity(opacity: number) {
+    private async updateOpacity(opacity: number) {
         this.bubbleElement!.style.opacity = `${opacity}`;
+        await this.delay(this.getTransitionDuration());
     }
 
     private getBirthplace(): Area {
@@ -321,11 +348,14 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        const duration = 500 + 100 * Math.random();
-        this.moveTo(this.x, y, duration);
-        await this.delay(duration);
+        const duration = this.getRiseDurationBySize(this.size) + 100 * Math.random();
+        await this.moveTo(this.x, y, duration);
         this.eatOthers();
         this._growUp = true;
+
+        this.dispatchEvent(new CustomEvent("bubble-grown", {
+            bubbles: true,
+        }))
     }
 
     private eatOthers() {
@@ -333,12 +363,12 @@ export class BBBubble extends HTMLElement {
         pe?.eatOthers(this);
     }
 
-    private moveToRandomPositionWithinBirthplace() {
+    private async moveToRandomPositionWithinBirthplace() {
         const x = this.getRandomXWithinBirthplace();
         const y = this.getRandomYWithingBirthplace();
 
         this._growUp = false;
-        this.moveTo(x, y);
+        return this.moveTo(x, y, 10);
     }
 
     private getSafeX(x: number) {
@@ -400,6 +430,7 @@ export class BBBubble extends HTMLElement {
     private padding: number = 10;
     private maxRiseDuration = 600;
     private minRiseDuration = 200;
+    private defaultDurationMs = 200;
 
     private _immortal: boolean = false;
 
