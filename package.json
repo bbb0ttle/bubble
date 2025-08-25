@@ -20,7 +20,8 @@
   "exports": {
     ".": {
       "import": "./dist/bubble.js",
-      "require": "./dist/bubble.umd.cjs"
+      "require": "./dist/bubble.umd.cjs",
+      "types": "./dist/index.d.ts"
     }
   },
   "publishConfig": {
