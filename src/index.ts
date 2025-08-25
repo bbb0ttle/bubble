@@ -106,7 +106,7 @@ export class BBBubble extends HTMLElement {
     }
 
     private updateTouchable(canTouch: boolean) {
-        this.bubbleElement!.style.pointerEvents = canTouch ? 'default' : 'none';
+        this.bubbleElement!.style.pointerEvents = canTouch ? 'auto' : 'none';
     }
 
     private async handleClick() {
