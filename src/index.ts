@@ -506,6 +506,12 @@ export class BBBubble extends HTMLElement {
     }
 }
 
+export {
+    BubbleEvent,
+    Glass,
+}
+
+
 if (!window.customElements.get('bb-bubble')) {
     window.BBBubble = BBBubble;
     window.customElements.define('bb-bubble', BBBubble);
