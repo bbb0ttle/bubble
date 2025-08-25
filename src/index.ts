@@ -1,6 +1,7 @@
 import {css} from './style';
 import {type Area} from './area';
 import {Glass} from "./glass.ts";
+import {BubbleEvent} from "./bubbleEvent.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -21,7 +22,7 @@ export class BBBubble extends HTMLElement {
 
     attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
         if (name === 'size') {
-            this.updateSize(parseInt(newValue, 10));
+            this.updateSize(parseInt(newValue, 10)).then();
         }
 
         if (name === 'immortal') {
@@ -30,12 +31,12 @@ export class BBBubble extends HTMLElement {
 
         if (name === 'x') {
             this.x = parseInt(newValue, 10);
-            this.moveTo(this.x, this.y);
+            this.moveTo(this.x, this.y).then();
         }
 
         if (name === 'y') {
             this.y = parseInt(newValue, 10);
-            this.moveTo(this.x, this.y);
+            this.moveTo(this.x, this.y).then();
         }
     }
 
@@ -87,7 +88,7 @@ export class BBBubble extends HTMLElement {
             this.bringBackToLife().then(() => {
                 this._died = false;
 
-                this.dispatchEvent(new CustomEvent("bubble-born", {
+                this.dispatchEvent(new CustomEvent(BubbleEvent.BORN, {
                     bubbles: true,
                 }))
             });
@@ -99,7 +100,7 @@ export class BBBubble extends HTMLElement {
             this._growUp = false;
             this._died = true;
 
-            this.dispatchEvent(new CustomEvent("bubble-died", {
+            this.dispatchEvent(new CustomEvent(BubbleEvent.DIED, {
                 bubbles: true,
             }))
         })
@@ -114,7 +115,7 @@ export class BBBubble extends HTMLElement {
 
         if (this._immortal) {
             const pe = this.parentElement as Glass
-            pe.wakeBubblesUp();
+            pe.wakeBubblesUp().then();
         }
 
         if (this.died) {
@@ -122,6 +123,10 @@ export class BBBubble extends HTMLElement {
         }
 
         await this.delay(this.getTransitionDuration());
+
+        this.dispatchEvent(new CustomEvent(BubbleEvent.CLICKED, {
+            bubbles: true,
+        }))
 
         if (!this.growUp) {
             this.moveToComfortZone().then(() => {
@@ -360,7 +365,7 @@ export class BBBubble extends HTMLElement {
         this.eatOthers();
         this._growUp = true;
 
-        this.dispatchEvent(new CustomEvent("bubble-grown", {
+        this.dispatchEvent(new CustomEvent(BubbleEvent.GROWN, {
             bubbles: true,
         }))
     }
@@ -451,6 +456,44 @@ export class BBBubble extends HTMLElement {
 
     public get immortal() {
         return this._immortal;
+    }
+
+    public get expanded() {
+        return this._expanded;
+    }
+
+    public set expanded(value: boolean) {
+        if (value === this._expanded) {
+            return;
+        }
+
+        this._expanded = value;
+
+        if (value) {
+            this.expand().then(this.reposition.bind(this));
+        } else {
+            this.collapse().then(this.reposition.bind(this));
+        }
+    }
+
+    private reposition() {
+        return this.moveTo(this.x, this.y, 500)
+    }
+
+    private _tmpSize: number = 0;
+    private _expanded: boolean = false;
+
+    private expand() {
+        this._tmpSize = this.size;
+        return this.updateSize(this.maxSize);
+    }
+
+    private collapse() {
+        if (this._tmpSize <= 0) {
+            return Promise.resolve();
+        }
+
+        return this.updateSize(this._tmpSize);
     }
 
     private getSafeSize(size: number): number {

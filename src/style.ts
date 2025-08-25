@@ -6,9 +6,6 @@ export function css(): string {
     
     ::slotted(*) {
         object-fit: cover;
-        opacity: 0.2;
-        filter: grayscale(1) blur(2px);
-        transition: opacity 0.1s;
     }
     
     .bubble {

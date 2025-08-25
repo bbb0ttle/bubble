@@ -82,7 +82,7 @@ export class Glass extends HTMLElement {
 
         setInterval(() => {
             const bubble = this.getRandomBubble();
-            if (bubble.immortal) {
+            if (bubble.immortal || bubble.expanded) {
                 return;
             }
 
