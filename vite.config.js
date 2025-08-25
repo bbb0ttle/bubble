@@ -13,7 +13,7 @@ export default defineConfig({
             entry: resolve(__dirname, 'src/index.ts'),
             name: 'bbbubble',
             // the proper extensions will be added
-            fileName: 'bbbubble',
+            fileName: 'bubble',
         },
         rollupOptions: {
         },
