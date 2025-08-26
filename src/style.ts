@@ -12,15 +12,18 @@ export function css(): string {
         opacity: 0;
         width: 128px;
         height: 128px;
-        top: 100vh;
-        left: 50vw;
+        // top: 100vh;
+        // left: 50vw;
+        top: 0px;
+        left: 0px;
         border-radius: 50%;
         transition:
             width 0.2s ease-in-out,
             height 0.2s ease-in-out,
             opacity 0.2s ease-in-out,
-            top 0.2s ease-in-out,
-            left 0.2s ease-in-out;
+            transform .2s ease-in-out;
+            // top 0.2s ease-in-out,
+            // left 0.2s ease-in-out;
 
         will-change: top, left;
         

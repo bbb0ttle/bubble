@@ -10,7 +10,7 @@ export class BBBubble extends HTMLElement {
         super();
         this.root = this.attachShadow({ mode: 'open' });
         this.root.innerHTML = `
-            <div class="bubble" idle>
+            <div class="bubble">
                 <slot></slot>
             </div>
         `;
@@ -165,8 +165,9 @@ export class BBBubble extends HTMLElement {
 
         const bubble = this.bubbleElement;
         if (bubble) {
-            bubble.style.top = `${this.y}px`;
-            bubble.style.left = `${this.x}px`;
+            // bubble.style.top = `${this.y}px`;
+            // bubble.style.left = `${this.x}px`;
+            bubble.style.transform = `translate(${this.x}px, ${this.y}px)`;
         }
 
         if (durationMs > 0) {
@@ -281,11 +282,11 @@ export class BBBubble extends HTMLElement {
     }
 
     private pauseAnimation() {
-        this.bubbleElement?.removeAttribute('idle');
+        // this.bubbleElement?.removeAttribute('idle');
     }
 
     private playAnimation() {
-        this.bubbleElement?.setAttribute('idle', '');
+        // this.bubbleElement?.setAttribute('idle', '');
     }
 
     private async delay(ms: number) {
