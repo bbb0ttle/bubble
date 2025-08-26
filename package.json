@@ -1,6 +1,6 @@
 {
   "name": "@bbb0ttle/bbbubble",
-  "version": "0.1.1",
+  "version": "0.1.7",
   "type": "module",
   "author": "bbbottle <b@bbki.ng>",
   "license": "MIT",
@@ -19,6 +19,7 @@
   ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/bubble.js",
       "require": "./dist/bubble.umd.cjs"
     }
