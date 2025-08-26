@@ -66,7 +66,7 @@ export class Glass extends HTMLElement {
                 height: 100vh;
                 height: 100dvh;
                 overflow: hidden;
-                contain: layout style;
+                contain: layout style paint;
              }
             
             ::slotted(*) {
