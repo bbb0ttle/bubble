@@ -2,6 +2,7 @@ import {css} from './style';
 import {type Area} from './area';
 import {Glass} from "./glass.ts";
 import {BubbleEvent} from "./bubbleEvent.ts";
+import {AnimationController} from "./AnimtaionController.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -57,6 +58,8 @@ export class BBBubble extends HTMLElement {
             this.x = this.getNumAttr("x", 100);
             this.y = this.getNumAttr("y", 100);
         }
+
+        this._animationCtrl = new AnimationController(this.bubbleElement!);
     }
 
     disconnectedCallback() {
@@ -100,6 +103,8 @@ export class BBBubble extends HTMLElement {
             this._growUp = false;
             this._died = true;
 
+            this._animationCtrl!.stopBreathing();
+
             this.dispatchEvent(new CustomEvent(BubbleEvent.DIED, {
                 bubbles: true,
             }))
@@ -122,7 +127,7 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        await this.delay(this.getTransitionDuration());
+        await this.delay(this.getTransitionDuration() / 2);
 
         this.dispatchEvent(new CustomEvent(BubbleEvent.CLICKED, {
             bubbles: true,
@@ -140,11 +145,10 @@ export class BBBubble extends HTMLElement {
     }
 
     private async scaleInOut() {
-        const bubble = this.bubbleElement;
-        bubble?.removeAttribute('idle');
-        this.bubbleElement!.setAttribute('clicked', '');
-        await this.delay(this.defaultDurationMs);
-        bubble?.removeAttribute('clicked');
+        const origin = this.size;
+        await this.updateSize(origin * 1.1, 100)
+        await this.updateSize(origin * 0.9, 80)
+        this.updateSize(origin, 20);
     }
 
     private getNumAttr(attrName: string, defaultValue: number): number {
@@ -235,15 +239,27 @@ export class BBBubble extends HTMLElement {
     }
 
 
-    private async updateSize(newSize: number) {
+    private _transitioning: boolean = false;
+    private async updateSize(newSize: number, durationMs: number = -1) {
+        if (this._transitioning) {
+            return;
+        }
+
+        this._transitioning = true;
         this.size = this.getSafeSize(newSize);
+
+        if (durationMs > 0) {
+            this.updateTransitionDuration(durationMs);
+        }
 
         const bubble = this.getBubbleElement();
 
         bubble!.style.width = `${this.size}px`;
         bubble!.style.height = `${this.size}px`;
 
+
         await this.delay(this.getTransitionDuration());
+        this._transitioning = false;
     }
 
     private async riseToTheSurface() {
@@ -363,8 +379,10 @@ export class BBBubble extends HTMLElement {
 
         const duration = this.getRiseDurationBySize(this.size) + 100 * Math.random();
         await this.moveTo(this.x, y, duration);
-        this.eatOthers();
+        await this.eatOthers();
         this._growUp = true;
+
+        this._animationCtrl!.breathe(this.size)
 
         this.dispatchEvent(new CustomEvent(BubbleEvent.GROWN, {
             bubbles: true,
@@ -450,6 +468,8 @@ export class BBBubble extends HTMLElement {
     private _died: boolean = true;
 
     private _growUp: boolean = false;
+
+    private _animationCtrl: AnimationController | null = null;
 
     public get growUp() {
         return this._growUp;
