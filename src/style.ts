@@ -12,7 +12,7 @@ export function css(): string {
         opacity: 0;
         width: 128px;
         height: 128px;
-        top: 100vh;
+        top: calc(100dvh - 128px);
         left: 50vw;
         border-radius: 50%;
         transition:
@@ -22,6 +22,7 @@ export function css(): string {
             top 0.2s ease-in-out,
             left 0.2s ease-in-out;
         
+        will-change: width, height, opacity, top, left;
         display: grid;
         place-content: center;
         
