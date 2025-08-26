@@ -14,7 +14,7 @@ export class AnimationController {
     const animation = this.element.animate(keyframes, {
       duration: 300,
       fill: 'forwards',
-      composite: 'replace',
+      composite: 'accumulate',
       ...options
     });
 
@@ -23,6 +23,8 @@ export class AnimationController {
   }
 
   public breathe(originSize: number) {
+    return;
+
     this.animate('breathe', [
       { width: `${originSize}px`, height: `${originSize}px`, offset: 0 },
       { width: `${originSize * 1.05}px`, height: `${originSize * 1.05}px`, offset: 1 },
