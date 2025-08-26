@@ -21,6 +21,8 @@ export function css(): string {
             opacity 0.2s ease-in-out,
             top 0.2s ease-in-out,
             left 0.2s ease-in-out;
+
+        will-change: top, left;
         
         display: grid;
         place-content: center;
