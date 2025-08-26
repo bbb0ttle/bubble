@@ -7,7 +7,6 @@ export class AnimationController {
   }
 
   animate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}): Animation {
-    // 取消之前的同名动画
     if (this.animations.has(name)) {
       this.animations.get(name)?.cancel();
     }
@@ -15,7 +14,7 @@ export class AnimationController {
     const animation = this.element.animate(keyframes, {
       duration: 300,
       fill: 'forwards',
-      composite: 'add', // 关键：叠加模式
+      composite: 'replace',
       ...options
     });
 
@@ -25,8 +24,8 @@ export class AnimationController {
 
   public breathe(originSize: number) {
     this.animate('breathe', [
-      { width: `${originSize * 0.9}px`, height: `${originSize * 0.9}px`, offset: 0 },
-      { width: `${originSize * 1.1}px`, height: `${originSize * 1.1}px`, offset: 1 },
+      { width: `${originSize}px`, height: `${originSize}px`, offset: 0 },
+      { width: `${originSize * 1.05}px`, height: `${originSize * 1.05}px`, offset: 1 },
     ], {
         duration: 2000,
         iterations: Infinity,

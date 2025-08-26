@@ -10,10 +10,8 @@ export function css(): string {
     
     .bubble {
         opacity: 0;
-        width: 128px;
-        height: 128px;
-        // top: 100vh;
-        // left: 50vw;
+        width: 20px;
+        height: 20px;
         top: 0px;
         left: 0px;
         border-radius: 50%;
@@ -22,8 +20,6 @@ export function css(): string {
             height 0.2s ease-in-out,
             opacity 0.2s ease-in-out,
             transform .2s ease-in-out;
-            // top 0.2s ease-in-out,
-            // left 0.2s ease-in-out;
 
         will-change: top, left;
         

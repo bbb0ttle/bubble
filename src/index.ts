@@ -200,7 +200,6 @@ export class BBBubble extends HTMLElement {
     }
 
     private isOverlapWith(another: BBBubble) {
-        // detect overlap by pos and size
         const distBetweenBubbles = Math.sqrt(
             Math.pow(this.x - another.x, 2) + Math.pow(this.y - another.y, 2));
 
@@ -268,7 +267,6 @@ export class BBBubble extends HTMLElement {
         await this.hide();
         this.updateTouchable(false);
     }
-
 
     private async bringBackToLife() {
         this._growUp = false;
@@ -378,11 +376,14 @@ export class BBBubble extends HTMLElement {
         }
 
         const duration = this.getRiseDurationBySize(this.size) + 100 * Math.random();
+
         await this.moveTo(this.x, y, duration);
+
         await this.eatOthers();
-        this._growUp = true;
 
         this._animationCtrl!.breathe(this.size)
+
+        this._growUp = true;
 
         this.dispatchEvent(new CustomEvent(BubbleEvent.GROWN, {
             bubbles: true,
@@ -391,7 +392,7 @@ export class BBBubble extends HTMLElement {
 
     private eatOthers() {
         const pe = this.parentElement as Glass
-        pe?.eatOthers(this);
+        return pe?.eatOthers(this);
     }
 
     private async moveToRandomPositionWithinBirthplace() {
