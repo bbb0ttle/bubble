@@ -49,7 +49,7 @@ export class AnimationController {
 
   animate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}): Animation {
     if (this.animations.has(name)) {
-      this.animations.get(name)?.cancel();
+      this.cancel(name);
     }
 
     if (options.hasOwnProperty('duration') && options.duration as number < 0) {
@@ -85,6 +85,47 @@ export class AnimationController {
     })
 
     await a.finished;
+
+    a.commitStyles();
+
+    this.stop('hide');
+  }
+
+  public async show(duration: number, targetOpacity: number = 1) {
+    const { opacity } = getComputedStyle(this.element);
+    const a = this.animate('show', [
+      { opacity },
+      { opacity: targetOpacity }
+    ], { iterations: 1, duration })
+
+    await a.finished;
+
+    if (this.isNotRender()) {
+      return;
+    }
+
+    a.commitStyles();
+
+    this.stop('show');
+  }
+
+  private isNotRender(): boolean {
+    const computedStyle = window.getComputedStyle(this.element);
+    return computedStyle.display === 'none';
+  }
+
+  public async hide(duration: number) {
+    const { opacity } = getComputedStyle(this.element);
+    const a = this.animate('hide', [
+      { opacity },
+      { opacity: 0 }
+    ], { iterations: 1, duration })
+
+    await a.finished;
+
+    if (this.isNotRender()) {
+      return;
+    }
 
     a.commitStyles();
   }
@@ -139,9 +180,25 @@ export class AnimationController {
     this.stop('breathe');
   }
 
+  cancel(name: string) {
+    if (!this.animations.has(name)) {
+      return;
+    }
+
+    if (!this.animations.get(name)) {
+      return;
+    }
+
+    if (this.animations.get(name)?.playState !== 'idle') {
+      return;
+    }
+
+    this.animations.get(name)?.cancel;
+  }
+
   stop(name: string) {
     if (this.animations.has(name)) {
-      this.animations.get(name)?.cancel();
+      this.cancel(name);
       this.animations.delete(name);
     }
   }

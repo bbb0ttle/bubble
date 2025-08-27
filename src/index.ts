@@ -207,7 +207,7 @@ export class BBBubble extends HTMLElement {
         // return promise
         return new Promise<boolean>(async (resolve) => {
             another.updateSize(this.minSize);
-            another.hide().then();
+            another.AnimationCtrl!.hide(200);
 
             await this.updateSize(this.getSafeSize(this.size + another.size * 0.2));
 
@@ -237,7 +237,7 @@ export class BBBubble extends HTMLElement {
     private async riseToTheSurface() {
         const duration =  this.getRiseDurationBySize(this.size);
         await this.moveTo(this.x, 0, duration);
-        await this.hide();
+        await this._animationCtrl!.hide(200);
         this.updateTouchable(false);
     }
 
@@ -250,51 +250,25 @@ export class BBBubble extends HTMLElement {
         this._growUp = false;
 
         if (!this._immortal) {
-            await this.updateSize(this.getRandomSize());
+            const rSize = this.getRandomSize();
+            await this.updateSize(rSize);
             await this.moveToRandomPositionWithinBirthplace();
         } else {
             await this.updateSize(60);
             await this.moveTo(this.x, this.y);
         }
 
-        await this.updateOpacity(this.getOpacityBySize(this.size));
-
-        await this.show();
+        this._animationCtrl!.show(200, this.getOpacityBySize(this.size));
 
         this.updateTouchable(true);
 
         this.eatOthers();
     }
 
-    private async hide() {
-        this.pauseAnimation();
-        this.getBubbleElement()?.removeAttribute('visible');
-        this.getBubbleElement()?.setAttribute('hide', '');
-        await this.delay(this.defaultDurationMs);
-    }
-
-    private pauseAnimation() {
-        // this.bubbleElement?.removeAttribute('idle');
-    }
-
-    private playAnimation() {
-        // this.bubbleElement?.setAttribute('idle', '');
-    }
-
     private async delay(ms: number) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    private async show() {
-        this.playAnimation();
-        this.bubbleElement?.removeAttribute('hide');
-        this.bubbleElement?.setAttribute('visible', '');
-        await this.delay(this.defaultDurationMs);
-    }
-
-    private async updateOpacity(opacity: number) {
-        this.bubbleElement!.style.opacity = `${opacity}`;
-    }
 
     private getBirthplace(): Area {
         const parentRect = this.parent?.getBoundingClientRect();
@@ -348,7 +322,6 @@ export class BBBubble extends HTMLElement {
         const y = this.getYOfComfortZone();
 
         if (y > this.y) {
-            console.log('cancel. y:', y, 'is greater than current y:', this.y);
             return;
         }
 
@@ -477,6 +450,10 @@ export class BBBubble extends HTMLElement {
 
     private reposition() {
         return this.moveTo(this.x, this.y, 500)
+    }
+
+    public get AnimationCtrl() {
+        return this._animationCtrl;
     }
 
     private _tmpSize: number = 0;
