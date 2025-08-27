@@ -6,6 +6,47 @@ export class AnimationController {
     this.animations = new Map();
   }
 
+  getWHValues(element: HTMLElement) {
+      const style = window.getComputedStyle(element);
+      const width = style.width;
+      const height = style.height;
+
+      width.replace("px", "");
+      height.replace("px", "");
+      
+      return { width: parseInt(width), height: parseInt(height) };
+  }
+
+  getTranslateValues(element: HTMLElement) {
+      const style = window.getComputedStyle(element);
+      // @ts-ignore
+      const transform = style.transform || style.webkitTransform || style.mozTransform;
+      
+      if (transform === 'none' || !transform) {
+          return { x: 0, y: 0 };
+      }
+      
+      const matrix = transform.match(/matrix.*\((.+)\)/);
+      if (matrix) {
+          const values = matrix[1].split(', ');
+          return {
+              x: parseFloat(values[4]) || 0, // tx value
+              y: parseFloat(values[5]) || 0  // ty value
+          };
+      }
+      
+      const translateMatch = transform.match(/translate(?:3d)?\(([^)]+)\)/);
+      if (translateMatch) {
+          const values = translateMatch[1].split(',').map((v: string) => parseFloat(v.trim()));
+          return {
+              x: values[0] || 0,
+              y: values[1] || 0
+          };
+      }
+      
+      return { x: 0, y: 0 };
+  }
+
   animate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}): Animation {
     if (this.animations.has(name)) {
       this.animations.get(name)?.cancel();
@@ -26,20 +67,26 @@ export class AnimationController {
     return animation;
   }
 
-  public scaleInOut(originSize: number) {
+  public async scaleInOut() {
+    const { width: originSize } = this.element.getBoundingClientRect();
+
     const peekSize = originSize * 1.1;
     const minSize = originSize * 0.9;
 
-    this.animate('scaleInOut', [
+    const a = this.animate('scaleInOut', [
       { width: `${peekSize}px`, height: `${peekSize}px`, offset: 0.5 },
       { width: `${minSize}px`, height: `${minSize}px`, offset: 0.8 },
       { width: `${originSize}px`, height: `${originSize}px`, offset: 1 },
     ], {
         duration: 200,
         iterations: 1,
-        easing: 'ease-in-out',
-    });
+        easing: 'linear',
+        composite: 'replace',
+    })
 
+    await a.finished;
+
+    a.commitStyles();
   }
 
   public breathe() {
@@ -55,16 +102,37 @@ export class AnimationController {
     });
   }
 
-  public moveTo(x0: number, y0: number, x: number, y: number, duration: number) {
-    this.animate('move', [
-      {transform: `translate(${x0}px, ${y0}px)`},
-      {transform: `translate(${x}px, ${y}px)`},
-    ], {
+  public moveTo(x: number, y: number, duration: number) {
+
+    const { x: x0, y: y0 } = this.getTranslateValues(this.element);
+
+    return new Promise((resolve) => {
+      this.animate('move', [
+        {transform: `translate(${x0}px, ${y0}px)`},
+        {transform: `translate(${x}px, ${y}px)`},
+      ], {
+          duration: duration,
+          iterations: 1,
+          easing: 'ease-in-out',
+          composite: 'replace',
+      }).onfinish = resolve;
+    });
+
+  }
+
+  public async scaleTo(size: number, duration: number) {
+    const { width: originSize } = this.getWHValues(this.element);
+
+    return new Promise((resolve) => {
+      this.animate('scale', [
+        { width: `${originSize}px`, height: `${originSize}px`},
+        { width: `${size}px`, height: `${size}px`},
+      ], {
         duration: duration,
         iterations: 1,
-        easing: 'ease-in-out',
-        composite: 'replace',
-    });
+        composite: 'replace'
+      }).onfinish = resolve;
+    })
   }
 
   stopBreathing() {

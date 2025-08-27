@@ -28,15 +28,15 @@ export class BBBubble extends HTMLElement {
     }
 
     attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
-        if (name === 'size') {
-            this.updateSize(parseInt(newValue, 10)).then();
-        }
+        this.ensureAnimationCtrl();
 
         if (name === 'immortal') {
             this._immortal = newValue == 'true';
         }
 
-        this.ensureAnimationCtrl();
+        if (name === 'size') {
+            this.updateSize(parseInt(newValue, 10));
+        }
 
         if (name === 'x') {
             this.x = parseInt(newValue, 10);
@@ -75,7 +75,7 @@ export class BBBubble extends HTMLElement {
     }
 
     tryEat(another: BBBubble) {
-        if (!this.isOverlapWith(another)) {
+        if (!this.isOverlapWith(another) || this.immortal || another.immortal) {
             return Promise.resolve(false);
         }
 
@@ -91,10 +91,18 @@ export class BBBubble extends HTMLElement {
     }
 
     set died(value: boolean) {
+        // set immortal to died
         if (this._immortal && value) {
+            this._died = false;
             return;
         }
 
+        // not change
+        if (this._died == value) {
+            return;
+        }
+
+        // set alive
         if (!value) {
             this.bringBackToLife().then(() => {
                 this._died = false;
@@ -109,6 +117,7 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
+        // set died;
         this.riseToTheSurface().then(() => {
             this._growUp = false;
             this._died = true;
@@ -128,7 +137,7 @@ export class BBBubble extends HTMLElement {
     }
 
     private async handleClick() {
-        this._animationCtrl?.scaleInOut(this.size);
+        this._animationCtrl?.scaleInOut();
 
         if (this._immortal) {
             const pe = this.parentElement as Glass
@@ -138,8 +147,6 @@ export class BBBubble extends HTMLElement {
         if (this.died) {
             return;
         }
-
-        await this.delay(this.getTransitionDuration() / 2);
 
         this.dispatchEvent(new CustomEvent(BubbleEvent.CLICKED, {
             bubbles: true,
@@ -156,36 +163,6 @@ export class BBBubble extends HTMLElement {
 
     }
 
-    getTranslateValues(element: HTMLElement) {
-        const style = window.getComputedStyle(element);
-        // @ts-ignore
-        const transform = style.transform || style.webkitTransform || style.mozTransform;
-        
-        if (transform === 'none' || !transform) {
-            return { x: 0, y: 0 };
-        }
-        
-        const matrix = transform.match(/matrix.*\((.+)\)/);
-        if (matrix) {
-            const values = matrix[1].split(', ');
-            return {
-                x: parseFloat(values[4]) || 0, // tx value
-                y: parseFloat(values[5]) || 0  // ty value
-            };
-        }
-        
-        const translateMatch = transform.match(/translate(?:3d)?\(([^)]+)\)/);
-        if (translateMatch) {
-            const values = translateMatch[1].split(',').map((v: string) => parseFloat(v.trim()));
-            return {
-                x: values[0] || 0,
-                y: values[1] || 0
-            };
-        }
-        
-        return { x: 0, y: 0 };
-    }
-
     private getNumAttr(attrName: string, defaultValue: number): number {
         const attr = this.getAttribute(attrName);
         if (attr) {
@@ -195,19 +172,12 @@ export class BBBubble extends HTMLElement {
     }
 
     private async moveTo(x: number, y: number, durationMs: number = -1) {
-        if (durationMs > 0) {
-            this.updateTransitionDuration(durationMs)
-        }
-
         const targetX = this.getSafeX(x);
         const targetY = this.getSafeY(y);
 
-        const { x: realtimeX, y: realtimeY } = this.getTranslateValues(this.bubbleElement!);
-
         const bubble = this.bubbleElement;
         if (bubble) {
-            this._animationCtrl?.moveTo(realtimeX, realtimeY, targetX, targetY, durationMs);
-            // bubble.style.transform = `translate(${this.x}px, ${this.y}px)`;
+            this._animationCtrl?.moveTo(targetX, targetY, durationMs);
             this.x = targetX;
             this.y = targetY;
         }
@@ -215,26 +185,6 @@ export class BBBubble extends HTMLElement {
         if (durationMs > 0) {
             await this.delay(durationMs);
         }
-    }
-
-    private updateTransitionDuration(ms: number) {
-        const bubble = this.bubbleElement;
-
-        if (bubble) {
-            bubble.style.transitionDuration = `${ms}ms`;
-        }
-    }
-
-    private getTransitionDuration() {
-        // get ms
-        const bubble = this.bubbleElement;
-        if (bubble) {
-            let style = bubble.style.transitionDuration;
-            style.replace("ms", "");
-            return parseInt(style, 10);
-        }
-
-        return this.defaultDurationMs;
     }
 
     private isOverlapWith(another: BBBubble) {
@@ -256,7 +206,7 @@ export class BBBubble extends HTMLElement {
 
         // return promise
         return new Promise<boolean>(async (resolve) => {
-            another.updateSize(this.minSize).then();
+            another.updateSize(this.minSize);
             another.hide().then();
 
             await this.updateSize(this.getSafeSize(this.size + another.size * 0.2));
@@ -276,27 +226,12 @@ export class BBBubble extends HTMLElement {
     }
 
 
-    private _transitioning: boolean = false;
     private async updateSize(newSize: number, durationMs: number = -1) {
-        if (this._transitioning) {
-            return;
-        }
+        const targetSize = this.getSafeSize(newSize);
 
-        this._transitioning = true;
-        this.size = this.getSafeSize(newSize);
+        await this._animationCtrl!.scaleTo(targetSize, durationMs);
 
-        if (durationMs > 0) {
-            this.updateTransitionDuration(durationMs);
-        }
-
-        const bubble = this.getBubbleElement();
-
-        bubble!.style.width = `${this.size}px`;
-        bubble!.style.height = `${this.size}px`;
-
-
-        await this.delay(this.getTransitionDuration());
-        this._transitioning = false;
+        this.size = targetSize;
     }
 
     private async riseToTheSurface() {
@@ -307,13 +242,18 @@ export class BBBubble extends HTMLElement {
     }
 
     private async bringBackToLife() {
+        // alive aready
+        if (!this._died) {
+            return;
+        }
+
         this._growUp = false;
 
         if (!this._immortal) {
             await this.updateSize(this.getRandomSize());
             await this.moveToRandomPositionWithinBirthplace();
         } else {
-            await this.updateSize(this.size);
+            await this.updateSize(60);
             await this.moveTo(this.x, this.y);
         }
 
@@ -354,7 +294,6 @@ export class BBBubble extends HTMLElement {
 
     private async updateOpacity(opacity: number) {
         this.bubbleElement!.style.opacity = `${opacity}`;
-        await this.delay(this.getTransitionDuration());
     }
 
     private getBirthplace(): Area {
