@@ -412,7 +412,6 @@ export class BBBubble extends HTMLElement {
     private padding: number = 10;
     private maxRiseDuration = 600;
     private minRiseDuration = 200;
-    private defaultDurationMs = 200;
 
     private _immortal: boolean = false;
 
