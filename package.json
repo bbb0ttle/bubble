@@ -4,7 +4,7 @@
   "type": "module",
   "author": "bbbottle <b@bbki.ng>",
   "license": "MIT",
-  "packageManager": "pnpm@10.6.2",
+  "packageManager": "pnpm@7.0.0",
   "main": "./dist/bubble.umd.cjs",
   "module": "./dist/bubble.js",
   "types": "./dist/index.d.ts",
