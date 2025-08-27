@@ -116,7 +116,8 @@ export class BBBubble extends HTMLElement {
     }
 
     private async handleClick() {
-        this.scaleInOut().then();
+        // this.scaleInOut().then();
+        this._animationCtrl?.scaleInOut(this.size);
 
         if (this._immortal) {
             const pe = this.parentElement as Glass
@@ -142,13 +143,6 @@ export class BBBubble extends HTMLElement {
 
         this.died = true;
 
-    }
-
-    private async scaleInOut() {
-        const origin = this.size;
-        await this.updateSize(origin * 1.1, 100)
-        await this.updateSize(origin * 0.9, 80)
-        this.updateSize(origin, 20);
     }
 
     private getNumAttr(attrName: string, defaultValue: number): number {

@@ -14,7 +14,7 @@ export class AnimationController {
     const animation = this.element.animate(keyframes, {
       duration: 300,
       fill: 'forwards',
-      composite: 'accumulate',
+      composite: 'replace',
       ...options
     });
 
@@ -22,12 +22,33 @@ export class AnimationController {
     return animation;
   }
 
-  public breathe(originSize: number) {
+  public scaleInOut(originSize: number) {
+    const peekSize = originSize * 1.1;
+    const minSize = originSize * 0.9;
+
+    this.animate('scaleInOut', [
+      { width: `${peekSize}px`, height: `${peekSize}px`, offset: 0.5 },
+      { width: `${minSize}px`, height: `${minSize}px`, offset: 0.8 },
+      { width: `${originSize}px`, height: `${originSize}px`, offset: 1 },
+    ], {
+        duration: 200,
+        iterations: 1,
+        easing: 'ease-in-out',
+    });
+
+  }
+
+  public breathe() {
     return;
+
+    const originSizeStyle = this.element.style.width;
+    originSizeStyle.replace('px', '');
+
+    const originSize = parseInt(originSizeStyle, 10);
 
     this.animate('breathe', [
       { width: `${originSize}px`, height: `${originSize}px`, offset: 0 },
-      { width: `${originSize * 1.05}px`, height: `${originSize * 1.05}px`, offset: 1 },
+      { width: `${originSize * 1.1}px`, height: `${originSize * 1.1}px`, offset: 1 },
     ], {
         duration: 2000,
         iterations: Infinity,

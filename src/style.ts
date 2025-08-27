@@ -21,7 +21,7 @@ export function css(): string {
             opacity 0.2s ease-in-out,
             transform .2s ease-in-out;
 
-        will-change: top, left;
+        will-change: top, left, width, height;
         
         display: grid;
         place-content: center;
