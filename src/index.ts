@@ -419,7 +419,7 @@ export class BBBubble extends HTMLElement {
 
         await this.eatOthers();
 
-        this._animationCtrl!.breathe(this.size)
+        this._animationCtrl!.breathe()
 
         this._growUp = true;
 
