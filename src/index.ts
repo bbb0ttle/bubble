@@ -2,6 +2,7 @@ import {css} from './style';
 import {type Area} from './area';
 import {Glass} from "./glass.ts";
 import {BubbleEvent} from "./bubbleEvent.ts";
+import {AnimationController} from "./AnimationController.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -10,7 +11,7 @@ export class BBBubble extends HTMLElement {
         super();
         this.root = this.attachShadow({ mode: 'open' });
         this.root.innerHTML = `
-            <div class="bubble" idle>
+            <div class="bubble">
                 <slot></slot>
             </div>
         `;
@@ -18,6 +19,12 @@ export class BBBubble extends HTMLElement {
 
     static get observedAttributes() {
         return ['size', 'immortal', 'x', 'y'];
+    }
+
+    private ensureAnimationCtrl() {
+        if (this._animationCtrl == null) {
+            this._animationCtrl = new AnimationController(this.bubbleElement!);
+        }
     }
 
     attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
@@ -28,6 +35,8 @@ export class BBBubble extends HTMLElement {
         if (name === 'immortal') {
             this._immortal = newValue == 'true';
         }
+
+        this.ensureAnimationCtrl();
 
         if (name === 'x') {
             this.x = parseInt(newValue, 10);
@@ -57,6 +66,8 @@ export class BBBubble extends HTMLElement {
             this.x = this.getNumAttr("x", 100);
             this.y = this.getNumAttr("y", 100);
         }
+
+        this._animationCtrl = new AnimationController(this.bubbleElement!);
     }
 
     disconnectedCallback() {
@@ -88,6 +99,8 @@ export class BBBubble extends HTMLElement {
             this.bringBackToLife().then(() => {
                 this._died = false;
 
+                this.bubbleElement!.style.display = "inline-block";
+
                 this.dispatchEvent(new CustomEvent(BubbleEvent.BORN, {
                     bubbles: true,
                 }))
@@ -100,6 +113,10 @@ export class BBBubble extends HTMLElement {
             this._growUp = false;
             this._died = true;
 
+            this.bubbleElement!.style.display = "none";
+
+            this._animationCtrl!.stopBreathing();
+
             this.dispatchEvent(new CustomEvent(BubbleEvent.DIED, {
                 bubbles: true,
             }))
@@ -111,7 +128,7 @@ export class BBBubble extends HTMLElement {
     }
 
     private async handleClick() {
-        this.scaleInOut().then();
+        this._animationCtrl?.scaleInOut(this.size);
 
         if (this._immortal) {
             const pe = this.parentElement as Glass
@@ -122,7 +139,7 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        await this.delay(this.getTransitionDuration());
+        await this.delay(this.getTransitionDuration() / 2);
 
         this.dispatchEvent(new CustomEvent(BubbleEvent.CLICKED, {
             bubbles: true,
@@ -139,12 +156,34 @@ export class BBBubble extends HTMLElement {
 
     }
 
-    private async scaleInOut() {
-        const bubble = this.bubbleElement;
-        bubble?.removeAttribute('idle');
-        this.bubbleElement!.setAttribute('clicked', '');
-        await this.delay(this.defaultDurationMs);
-        bubble?.removeAttribute('clicked');
+    getTranslateValues(element: HTMLElement) {
+        const style = window.getComputedStyle(element);
+        // @ts-ignore
+        const transform = style.transform || style.webkitTransform || style.mozTransform;
+        
+        if (transform === 'none' || !transform) {
+            return { x: 0, y: 0 };
+        }
+        
+        const matrix = transform.match(/matrix.*\((.+)\)/);
+        if (matrix) {
+            const values = matrix[1].split(', ');
+            return {
+                x: parseFloat(values[4]) || 0, // tx value
+                y: parseFloat(values[5]) || 0  // ty value
+            };
+        }
+        
+        const translateMatch = transform.match(/translate(?:3d)?\(([^)]+)\)/);
+        if (translateMatch) {
+            const values = translateMatch[1].split(',').map((v: string) => parseFloat(v.trim()));
+            return {
+                x: values[0] || 0,
+                y: values[1] || 0
+            };
+        }
+        
+        return { x: 0, y: 0 };
     }
 
     private getNumAttr(attrName: string, defaultValue: number): number {
@@ -160,13 +199,17 @@ export class BBBubble extends HTMLElement {
             this.updateTransitionDuration(durationMs)
         }
 
-        this.x = this.getSafeX(x);
-        this.y = this.getSafeY(y);
+        const targetX = this.getSafeX(x);
+        const targetY = this.getSafeY(y);
+
+        const { x: realtimeX, y: realtimeY } = this.getTranslateValues(this.bubbleElement!);
 
         const bubble = this.bubbleElement;
         if (bubble) {
-            bubble.style.top = `${this.y}px`;
-            bubble.style.left = `${this.x}px`;
+            this._animationCtrl?.moveTo(realtimeX, realtimeY, targetX, targetY, durationMs);
+            // bubble.style.transform = `translate(${this.x}px, ${this.y}px)`;
+            this.x = targetX;
+            this.y = targetY;
         }
 
         if (durationMs > 0) {
@@ -195,7 +238,6 @@ export class BBBubble extends HTMLElement {
     }
 
     private isOverlapWith(another: BBBubble) {
-        // detect overlap by pos and size
         const distBetweenBubbles = Math.sqrt(
             Math.pow(this.x - another.x, 2) + Math.pow(this.y - another.y, 2));
 
@@ -234,15 +276,27 @@ export class BBBubble extends HTMLElement {
     }
 
 
-    private async updateSize(newSize: number) {
+    private _transitioning: boolean = false;
+    private async updateSize(newSize: number, durationMs: number = -1) {
+        if (this._transitioning) {
+            return;
+        }
+
+        this._transitioning = true;
         this.size = this.getSafeSize(newSize);
+
+        if (durationMs > 0) {
+            this.updateTransitionDuration(durationMs);
+        }
 
         const bubble = this.getBubbleElement();
 
         bubble!.style.width = `${this.size}px`;
         bubble!.style.height = `${this.size}px`;
 
+
         await this.delay(this.getTransitionDuration());
+        this._transitioning = false;
     }
 
     private async riseToTheSurface() {
@@ -251,7 +305,6 @@ export class BBBubble extends HTMLElement {
         await this.hide();
         this.updateTouchable(false);
     }
-
 
     private async bringBackToLife() {
         this._growUp = false;
@@ -281,11 +334,11 @@ export class BBBubble extends HTMLElement {
     }
 
     private pauseAnimation() {
-        this.bubbleElement?.removeAttribute('idle');
+        // this.bubbleElement?.removeAttribute('idle');
     }
 
     private playAnimation() {
-        this.bubbleElement?.setAttribute('idle', '');
+        // this.bubbleElement?.setAttribute('idle', '');
     }
 
     private async delay(ms: number) {
@@ -361,8 +414,13 @@ export class BBBubble extends HTMLElement {
         }
 
         const duration = this.getRiseDurationBySize(this.size) + 100 * Math.random();
+
         await this.moveTo(this.x, y, duration);
-        this.eatOthers();
+
+        await this.eatOthers();
+
+        this._animationCtrl!.breathe()
+
         this._growUp = true;
 
         this.dispatchEvent(new CustomEvent(BubbleEvent.GROWN, {
@@ -372,7 +430,7 @@ export class BBBubble extends HTMLElement {
 
     private eatOthers() {
         const pe = this.parentElement as Glass
-        pe?.eatOthers(this);
+        return pe?.eatOthers(this);
     }
 
     private async moveToRandomPositionWithinBirthplace() {
@@ -449,6 +507,8 @@ export class BBBubble extends HTMLElement {
     private _died: boolean = true;
 
     private _growUp: boolean = false;
+
+    private _animationCtrl: AnimationController | null = null;
 
     public get growUp() {
         return this._growUp;
