@@ -2,7 +2,7 @@ import {css} from './style';
 import {type Area} from './area';
 import {Glass} from "./glass.ts";
 import {BubbleEvent} from "./bubbleEvent.ts";
-import {AnimationController} from "./AnimtaionController.ts";
+import {AnimationController} from "./AnimationController.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -21,6 +21,12 @@ export class BBBubble extends HTMLElement {
         return ['size', 'immortal', 'x', 'y'];
     }
 
+    private ensureAnimationCtrl() {
+        if (this._animationCtrl == null) {
+            this._animationCtrl = new AnimationController(this.bubbleElement!);
+        }
+    }
+
     attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
         if (name === 'size') {
             this.updateSize(parseInt(newValue, 10)).then();
@@ -29,6 +35,8 @@ export class BBBubble extends HTMLElement {
         if (name === 'immortal') {
             this._immortal = newValue == 'true';
         }
+
+        this.ensureAnimationCtrl();
 
         if (name === 'x') {
             this.x = parseInt(newValue, 10);
@@ -148,6 +156,36 @@ export class BBBubble extends HTMLElement {
 
     }
 
+    getTranslateValues(element: HTMLElement) {
+        const style = window.getComputedStyle(element);
+        // @ts-ignore
+        const transform = style.transform || style.webkitTransform || style.mozTransform;
+        
+        if (transform === 'none' || !transform) {
+            return { x: 0, y: 0 };
+        }
+        
+        const matrix = transform.match(/matrix.*\((.+)\)/);
+        if (matrix) {
+            const values = matrix[1].split(', ');
+            return {
+                x: parseFloat(values[4]) || 0, // tx value
+                y: parseFloat(values[5]) || 0  // ty value
+            };
+        }
+        
+        const translateMatch = transform.match(/translate(?:3d)?\(([^)]+)\)/);
+        if (translateMatch) {
+            const values = translateMatch[1].split(',').map((v: string) => parseFloat(v.trim()));
+            return {
+                x: values[0] || 0,
+                y: values[1] || 0
+            };
+        }
+        
+        return { x: 0, y: 0 };
+    }
+
     private getNumAttr(attrName: string, defaultValue: number): number {
         const attr = this.getAttribute(attrName);
         if (attr) {
@@ -161,12 +199,17 @@ export class BBBubble extends HTMLElement {
             this.updateTransitionDuration(durationMs)
         }
 
-        this.x = this.getSafeX(x);
-        this.y = this.getSafeY(y);
+        const targetX = this.getSafeX(x);
+        const targetY = this.getSafeY(y);
+
+        const { x: realtimeX, y: realtimeY } = this.getTranslateValues(this.bubbleElement!);
 
         const bubble = this.bubbleElement;
         if (bubble) {
-            bubble.style.transform = `translate(${this.x}px, ${this.y}px)`;
+            this._animationCtrl?.moveTo(realtimeX, realtimeY, targetX, targetY, durationMs);
+            // bubble.style.transform = `translate(${this.x}px, ${this.y}px)`;
+            this.x = targetX;
+            this.y = targetY;
         }
 
         if (durationMs > 0) {
