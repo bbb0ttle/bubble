@@ -40,21 +40,6 @@ export class AnimationController {
 
   public breathe() {
     return;
-
-    const originSizeStyle = this.element.style.width;
-    originSizeStyle.replace('px', '');
-
-    const originSize = parseInt(originSizeStyle, 10);
-
-    this.animate('breathe', [
-      { width: `${originSize}px`, height: `${originSize}px`, offset: 0 },
-      { width: `${originSize * 1.1}px`, height: `${originSize * 1.1}px`, offset: 1 },
-    ], {
-        duration: 2000,
-        iterations: Infinity,
-        direction: 'alternate',
-        easing: 'ease-in-out',
-    });
   }
 
   stopBreathing() {

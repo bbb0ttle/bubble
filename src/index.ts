@@ -91,6 +91,8 @@ export class BBBubble extends HTMLElement {
             this.bringBackToLife().then(() => {
                 this._died = false;
 
+                this.bubbleElement!.style.display = "inline-block";
+
                 this.dispatchEvent(new CustomEvent(BubbleEvent.BORN, {
                     bubbles: true,
                 }))
@@ -102,6 +104,8 @@ export class BBBubble extends HTMLElement {
         this.riseToTheSurface().then(() => {
             this._growUp = false;
             this._died = true;
+
+            this.bubbleElement!.style.display = "none";
 
             this._animationCtrl!.stopBreathing();
 
@@ -116,7 +120,6 @@ export class BBBubble extends HTMLElement {
     }
 
     private async handleClick() {
-        // this.scaleInOut().then();
         this._animationCtrl?.scaleInOut(this.size);
 
         if (this._immortal) {
@@ -163,8 +166,6 @@ export class BBBubble extends HTMLElement {
 
         const bubble = this.bubbleElement;
         if (bubble) {
-            // bubble.style.top = `${this.y}px`;
-            // bubble.style.left = `${this.x}px`;
             bubble.style.transform = `translate(${this.x}px, ${this.y}px)`;
         }
 
