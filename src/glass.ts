@@ -24,6 +24,14 @@ export class Glass extends HTMLElement {
         }
     }
 
+    private setViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        console.log("vh", vh)
+        document.documentElement.style.setProperty('--myvh', `${vh}px`);
+    }
+
+    // 初始设置
+
     public eatOthers = (a: BBBubble) => {
         return this.bubbles.reduce(
             (prevPromise, currentBubble) =>
@@ -63,7 +71,7 @@ export class Glass extends HTMLElement {
                 left: 0;
                 z-index: 9999;
                 width: 100vw;
-                height: 100vh;
+                height: calc(var(--myvh, 1myvh) * 100);
                 overflow: hidden;
                 contain: layout style paint;
              }
@@ -76,6 +84,11 @@ export class Glass extends HTMLElement {
         this.root.adoptedStyleSheets = [styleSheet];
 
         this.collectBubblesFromSlot();
+
+        window.addEventListener('resize', this.setViewportHeight);
+        window.addEventListener('orientationchange', this.setViewportHeight);
+
+        this.setViewportHeight();
 
         this.wakeBubblesUp();
 
@@ -104,6 +117,7 @@ export class Glass extends HTMLElement {
     }
 
     public disconnectedCallback() {
+        window.removeEventListener('resize', this.setViewportHeight);
+        window.removeEventListener('orientationchange', this.setViewportHeight);
     }
-
 }
