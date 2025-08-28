@@ -215,8 +215,9 @@ export class BBBubble extends HTMLElement {
             if (shouldAttract) {
                 const moveDuration = 50 + 50 * Math.random();
                 await another.moveTo(this.x + this.size / 2, this.y + this.size / 2, moveDuration);
-                another.died = true;
             }
+
+            another.died = true;
 
             await this.moveToComfortZone();
 
