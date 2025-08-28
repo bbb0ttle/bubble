@@ -234,7 +234,8 @@ export class BBBubble extends HTMLElement {
         this._growUp = false;
 
         await this.updateSize(this.initSize);
-        await this.moveTo(this.initPos.x, this.initPos.y);
+        const p = this.initPos;
+        await this.moveTo(p.x, p.y);
 
         this._animationCtrl!.show(200, this.opacity);
 
@@ -333,7 +334,13 @@ export class BBBubble extends HTMLElement {
         return this.root.querySelector('.bubble') as HTMLElement;
     }
 
+    private _birthPlace: Area | undefined;
+
     private get birthplace(): Area {
+        if (this._birthPlace) {
+            return this._birthPlace;
+        }
+
         const parentRect = this.parent?.getBoundingClientRect();
 
         if (!parentRect) {
@@ -347,12 +354,14 @@ export class BBBubble extends HTMLElement {
 
         const areaHeight = parentRect.height * .2;
 
-        return {
+        this._birthPlace = {
             x: 0,
             y:  parentRect.height - areaHeight,
             width: parentRect.width,
             height: areaHeight
-        };
+        }
+
+        return this._birthPlace;
     }
 
     private get parent() {
@@ -388,14 +397,14 @@ export class BBBubble extends HTMLElement {
 
     private set fullscreen(full: boolean) {
         if (full) {
-
            this._animationCtrl?.enterFullscreen(this.space!);
            this.bubbleElement!.style.zIndex = "2";
-
+           this.bubbleElement!.style.background= "#fff";
         } else {
 
             this._animationCtrl?.exitFullscreen(this.size, this.position)
             this.bubbleElement!.style.zIndex = "1";
+           this.bubbleElement!.style.background="none";
         } 
 
         this._fullScreen = full;
