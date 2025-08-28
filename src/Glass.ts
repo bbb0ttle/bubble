@@ -92,11 +92,9 @@ export class Glass extends HTMLElement {
 
         this.wakeBubblesUp();
 
-        await this.delay(2000);
-
         setInterval(() => {
             const bubble = this.getRandomBubble();
-            if (bubble.immortal || bubble.expanded) {
+            if (bubble.immortal) {
                 return;
             }
 
@@ -105,7 +103,7 @@ export class Glass extends HTMLElement {
                 return;
             }
 
-            if (!bubble.growUp && bubble.died) {
+            if (bubble.died) {
                 bubble.died = false;
                 return;
             }
