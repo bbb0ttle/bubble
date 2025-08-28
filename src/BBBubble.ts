@@ -1,5 +1,5 @@
 import { AnimationController } from "./AnimationController";
-import { Area } from "./Area";
+import type { Area } from "./Area";
 import { BubbleEvent } from "./BubbleEvent";
 import { Glass } from "./Glass";
 import { css } from "./style";

@@ -2,13 +2,6 @@ import {Glass} from "./Glass";
 import {BubbleEvent} from "./BubbleEvent";
 import {BBBubble} from './BBBubble';
 
-export {
-    BBBubble,
-    BubbleEvent,
-    Glass,
-}
-
-
 if (!window.customElements.get('bb-bubble')) {
     window.BBBubble = BBBubble;
     window.customElements.define('bb-bubble', BBBubble);
@@ -30,3 +23,10 @@ declare global {
         'bb-glass': Glass;
     }
 }
+
+export {
+    BBBubble,
+    BubbleEvent,
+    Glass,
+}
+
