@@ -193,7 +193,7 @@ export class BBBubble extends HTMLElement {
         // return promise
         return new Promise<boolean>(async (resolve) => {
             another.updateSize(this.minSize);
-            another.AnimationCtrl!.hide(200);
+            await another.AnimationCtrl!.hide(100);
 
             await this.updateSize(this.getSafeSize(this.size + another.size * 0.2));
 
@@ -203,8 +203,8 @@ export class BBBubble extends HTMLElement {
                 await another.moveTo(this.x + this.size / 2, this.y + this.size / 2, moveDuration);
             }
 
-            another.died = true;
 
+            another.died = true;
             await this.moveToComfortZone();
 
             resolve(true);
