@@ -139,10 +139,10 @@ export class AnimationController {
 
       const whRatio = space.width / space.height;
 
-      const offset = Math.abs(space.width - space.height) / 2 * -1;
+      const offset = Math.abs(space.width - space.height) / 2;
 
       const xOffset = whRatio > 1 ? offset : 0;
-      const yOffset = whRatio > 1 ? 0 : offset * -1;
+      const yOffset = whRatio > 1 ? 0 : offset;
 
       const duration = 200;
       const padding = 10;
