@@ -45,23 +45,15 @@ export class BBBubble extends HTMLElement {
     }
 
     connectedCallback() {
+        // style
         const stylesheet = new CSSStyleSheet();
         stylesheet.replaceSync(css());
         this.root.adoptedStyleSheets = [stylesheet];
 
-        // add click listener
+        // event
         this.addEventListener('click', this.handleClick);
 
-        // set immortal from attr
-        const immortalAttr = this.getAttribute('immortal');
-        this._immortal = immortalAttr == 'true';
-
-        if (this._immortal) {
-            this.updateSize(this.getNumAttr("size", 80));
-            this.x = this.getNumAttr("x", 100);
-            this.y = this.getNumAttr("y", 100);
-        }
-
+        // animation
         this._animationCtrl = new AnimationController(this.bubbleElement!);
     }
 
@@ -164,14 +156,6 @@ export class BBBubble extends HTMLElement {
 
     }
 
-    private getNumAttr(attrName: string, defaultValue: number): number {
-        const attr = this.getAttribute(attrName);
-        if (attr) {
-            return parseInt(attr, 10);
-        }
-        return defaultValue;
-    }
-
     private async moveTo(x: number, y: number, durationMs: number = -1) {
         const targetX = this.getSafeX(x);
         const targetY = this.getSafeY(y);
@@ -245,13 +229,8 @@ export class BBBubble extends HTMLElement {
 
         this._growUp = false;
 
-        if (!this._immortal) {
-            await this.updateSize(this.randomSize);
-            await this.moveToRandomPositionWithinBirthplace();
-        } else {
-            await this.updateSize(60);
-            await this.moveTo(this.x, this.y);
-        }
+        await this.updateSize(this.initSize);
+        await this.moveTo(this.initPos.x, this.initPos.y);
 
         this._animationCtrl!.show(200, this.opacity);
 
@@ -292,11 +271,6 @@ export class BBBubble extends HTMLElement {
     private eatOthers() {
         const pe = this.parentElement as Glass
         return pe?.eatOthers(this);
-    }
-
-    private async moveToRandomPositionWithinBirthplace() {
-        const rPos = this.randomPos;
-        return this.moveTo(rPos.x, rPos.y, 10);
     }
 
     private getSafeX(x: number) {
@@ -395,6 +369,29 @@ export class BBBubble extends HTMLElement {
 
     private _immortal: boolean = false;
 
+    private get initSize() {
+        if (this.immortal) {
+            const sizeStr = this.getAttribute("size");
+            return sizeStr ? parseFloat(sizeStr) : 60;
+        }
+
+        return this.randomSize;
+    }
+
+    private get initPos() {
+        if (!this.immortal) {
+            return this.randomPos;
+        }
+
+        const xStr = this.getAttribute("x");
+        const yStr = this.getAttribute("y");
+
+        return {
+            x: xStr ? parseFloat(xStr) : 50,
+            y: yStr ? parseFloat(yStr) : 50,
+        }
+    }
+
     private _died: boolean = true;
 
     private _growUp: boolean = false;
@@ -407,6 +404,12 @@ export class BBBubble extends HTMLElement {
 
     public get immortal() {
         return this._immortal;
+    }
+
+    private set immortal(value: boolean) {
+        if (value) {
+            this.died = false;
+        }
     }
 
 
