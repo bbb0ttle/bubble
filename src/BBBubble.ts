@@ -33,14 +33,11 @@ export class BBBubble extends HTMLElement {
             this.updateSize(parseInt(newValue, 10));
         }
 
-        if (name === 'x') {
-            this.x = parseInt(newValue, 10);
-            this.moveTo(this.x, this.y).then();
-        }
-
-        if (name === 'y') {
-            this.y = parseInt(newValue, 10);
-            this.moveTo(this.x, this.y).then();
+        if (name === 'pos') {
+            const posNum = newValue.split(',').map(parseFloat);
+            if (posNum.length == 2) {
+                this.moveTo(posNum[0], posNum[1]).then();
+            }
         }
     }
 
@@ -77,6 +74,10 @@ export class BBBubble extends HTMLElement {
         return this._animationCtrl;
     }
 
+    get isMoving() {
+        return this._isMoving;
+    }
+
     get died(): boolean {
         return this._died;
     }
@@ -85,6 +86,10 @@ export class BBBubble extends HTMLElement {
         // set immortal to died
         if (this._immortal && value) {
             this._died = false;
+            return;
+        }
+
+        if (this.isMoving) {
             return;
         }
 
@@ -161,7 +166,15 @@ export class BBBubble extends HTMLElement {
 
     }
 
+    private _isMoving = false;
+
     private async moveTo(x: number, y: number, durationMs: number = -1) {
+        if (this._isMoving) {
+            return;
+        }
+
+        this._isMoving = true;
+
         const targetX = this.getSafeX(x);
         const targetY = this.getSafeY(y);
 
@@ -171,6 +184,8 @@ export class BBBubble extends HTMLElement {
             this.x = targetX;
             this.y = targetY;
         }
+
+        this._isMoving = false;
     }
 
     private isOverlapWith(another: BBBubble) {
@@ -182,11 +197,11 @@ export class BBBubble extends HTMLElement {
 
 
     private eat(another: BBBubble) {
-        if (this.died || this._immortal) {
+        if (this.died || this._immortal || this.isMoving) {
             return Promise.resolve(false);
         }
 
-        if (another == null || another == this || another.died || another._immortal) {
+        if (another == null || another == this || another.died || another._immortal || another.isMoving) {
             return Promise.resolve(false);
         }
 
@@ -202,7 +217,6 @@ export class BBBubble extends HTMLElement {
                 const moveDuration = 50 + 50 * Math.random();
                 await another.moveTo(this.x + this.size / 2, this.y + this.size / 2, moveDuration);
             }
-
 
             another.died = true;
             await this.moveToComfortZone();
@@ -227,7 +241,7 @@ export class BBBubble extends HTMLElement {
     }
 
     private async bringBackToLife() {
-        if (!this._died) {
+        if (!this._died || this.isMoving) {
             return;
         }
 
@@ -254,7 +268,7 @@ export class BBBubble extends HTMLElement {
     private async moveToComfortZone() {
         const y = this.getYOfComfortZone();
 
-        if (y > this.y) {
+        if (y > this.y || this.isMoving) {
             return;
         }
 
@@ -424,12 +438,17 @@ export class BBBubble extends HTMLElement {
             return this.randomPos;
         }
 
-        const xStr = this.getAttribute("x");
-        const yStr = this.getAttribute("y");
+        const posStr = this.getAttribute("pos")
+
+        const posNum = posStr ? posStr.split(',').map(parseFloat) : [50, 50];
+
+        if (posNum.length != 2) {
+            return { x: 50, y: 50 }
+        }
 
         return {
-            x: xStr ? parseFloat(xStr) : 50,
-            y: yStr ? parseFloat(yStr) : 50,
+            x: posNum[0],
+            y: posNum[1],
         }
     }
 
