@@ -36,46 +36,5 @@ export function css(): string {
         
         color: #efefef;
     }
-    
-    [clicked] {
-        animation: scale-in-out 0.2s;
-    }
-    
-    [idle] {
-        animation: idle 2s ease-in-out infinite;
-    }
-
-    [visible] {
-        opacity: 1;
-    }
-
-    [hide] {
-        opacity: 0 !important;
-    }
-
-    @keyframes scale-in-out {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.2);
-            opacity: 1;
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-    
-    @keyframes idle {
-        0% {
-            transform: scale(1);
-        }
-        50% {
-            transform: scale(1.05);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
 `
 }
