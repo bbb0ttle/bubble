@@ -139,6 +139,7 @@ export class BBBubble extends HTMLElement {
         if (this._immortal) {
             const pe = this.parentElement as Glass
             pe.wakeBubblesUp().then();
+            this.fullscreen = !this.fullscreen;
         }
 
         if (this.died) {
@@ -210,26 +211,6 @@ export class BBBubble extends HTMLElement {
 
         });
     }
-
-    private async enterFullscreen() {
-        if (!this.space || !this._animationCtrl) {
-            return;
-        }
-
-        const whRatio = this.space.width / this.space.height;
-
-        const offset = Math.abs(this.space.width - this.space.height) / 2 * -1;
-
-        const xOffset = whRatio > 1 ? 0 : offset;
-        const yOffset = whRatio > 1 ? offset : 0;
-
-        const duration = 400;
-
-        this._animationCtrl?.moveTo(xOffset, yOffset, duration);
-
-        await this._animationCtrl.scaleTo(Math.max(this.space.height, this.space.width), duration);
-    }
-
 
     private async updateSize(newSize: number, durationMs: number = -1) {
         const targetSize = this.getSafeSize(newSize);
@@ -382,6 +363,13 @@ export class BBBubble extends HTMLElement {
     private x: number = 0;
     private y: number = 0;
 
+    private get position() {
+        return {
+            x: this.x,
+            y: this.y
+        }
+    }
+
     private minSize: number = 20;
     private maxSize: number = 160;
     private minOpacity: number = .5;
@@ -391,6 +379,27 @@ export class BBBubble extends HTMLElement {
     private minRiseDuration = 200;
 
     private _immortal: boolean = false;
+
+    private _fullScreen: boolean = false;
+
+    private get fullscreen() {
+        return this._fullScreen;
+    }
+
+    private set fullscreen(full: boolean) {
+        if (full) {
+
+           this._animationCtrl?.enterFullscreen(this.space!);
+           this.bubbleElement!.style.zIndex = "2";
+
+        } else {
+
+            this._animationCtrl?.exitFullscreen(this.size, this.position)
+            this.bubbleElement!.style.zIndex = "1";
+        } 
+
+        this._fullScreen = full;
+    }
 
     private get initSize() {
         if (this.immortal) {

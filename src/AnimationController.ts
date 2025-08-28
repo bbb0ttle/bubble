@@ -1,3 +1,5 @@
+import type { Position } from "./Position";
+
 export class AnimationController {
   element: HTMLElement;
   animations: Map<string, Animation>;
@@ -128,6 +130,42 @@ export class AnimationController {
     }
 
     a.commitStyles();
+  }
+
+  async enterFullscreen(space: DOMRect) {
+      if (!space) {
+          return;
+      }
+
+      const whRatio = space.width / space.height;
+
+      const offset = Math.abs(space.width - space.height) / 2 * -1;
+
+      const xOffset = whRatio > 1 ? offset : 0;
+      const yOffset = whRatio > 1 ? 0 : offset * -1;
+
+      const duration = 200;
+      const padding = 10;
+
+      const targetSize = Math.min(space.height, space.width) - padding * 2;
+
+      this.moveTo(xOffset + padding, yOffset + padding, duration * .2);
+
+      await this.scaleTo(targetSize * 1.1, .5 * duration);
+      await this.scaleTo(targetSize * 0.9, .3 * duration)
+      await this.scaleTo(targetSize, .2 * duration);
+
+  }
+
+  async exitFullscreen(size: number, pos: Position) {
+    const duration = 200;
+
+    this.moveTo(pos.x, pos.y, duration * .2);
+
+    await this.scaleTo(size * 0.9, .5 * duration);
+    await this.scaleTo(size * 1.1, .3 * duration)
+    await this.scaleTo(size, .2 * duration);
+
   }
 
   public breathe() {
