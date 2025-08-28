@@ -73,6 +73,10 @@ export class BBBubble extends HTMLElement {
         }
     }
 
+    get AnimationCtrl() {
+        return this._animationCtrl;
+    }
+
     get died(): boolean {
         return this._died;
     }
@@ -205,6 +209,25 @@ export class BBBubble extends HTMLElement {
             resolve(true);
 
         });
+    }
+
+    private async enterFullscreen() {
+        if (!this.space || !this._animationCtrl) {
+            return;
+        }
+
+        const whRatio = this.space.width / this.space.height;
+
+        const offset = Math.abs(this.space.width - this.space.height) / 2 * -1;
+
+        const xOffset = whRatio > 1 ? 0 : offset;
+        const yOffset = whRatio > 1 ? offset : 0;
+
+        const duration = 400;
+
+        this._animationCtrl?.moveTo(xOffset, yOffset, duration);
+
+        await this._animationCtrl.scaleTo(Math.max(this.space.height, this.space.width), duration);
     }
 
 
@@ -412,9 +435,8 @@ export class BBBubble extends HTMLElement {
         }
     }
 
-
-    public get AnimationCtrl() {
-        return this._animationCtrl;
+    private get space() {
+        return this.parent?.getBoundingClientRect();
     }
 
     private getSafeSize(size: number): number {
