@@ -1,5 +1,6 @@
 import { AnimationController } from "./AnimationController";
 import type { Area } from "./Area";
+import type { Position } from "./Position";
 import { BubbleEvent } from "./BubbleEvent";
 import { Glass } from "./Glass";
 import { css } from "./style";
@@ -19,12 +20,6 @@ export class BBBubble extends HTMLElement {
 
     static get observedAttributes() {
         return ['size', 'immortal', 'x', 'y'];
-    }
-
-    private ensureAnimationCtrl() {
-        if (this._animationCtrl == null) {
-            this._animationCtrl = new AnimationController(this.bubbleElement!);
-        }
     }
 
     attributeChangedCallback(name: string, _oldValue: string, newValue: string) {
@@ -132,6 +127,12 @@ export class BBBubble extends HTMLElement {
         })
     }
 
+    private ensureAnimationCtrl() {
+        if (this._animationCtrl == null) {
+            this._animationCtrl = new AnimationController(this.bubbleElement!);
+        }
+    }
+
     private updateTouchable(canTouch: boolean) {
         this.bubbleElement!.style.pointerEvents = canTouch ? 'auto' : 'none';
     }
@@ -177,13 +178,9 @@ export class BBBubble extends HTMLElement {
 
         const bubble = this.bubbleElement;
         if (bubble) {
-            this._animationCtrl?.moveTo(targetX, targetY, durationMs);
+            await this._animationCtrl?.moveTo(targetX, targetY, durationMs);
             this.x = targetX;
             this.y = targetY;
-        }
-
-        if (durationMs > 0) {
-            await this.delay(durationMs);
         }
     }
 
@@ -236,14 +233,12 @@ export class BBBubble extends HTMLElement {
     }
 
     private async riseToTheSurface() {
-        const duration =  this.getRiseDurationBySize(this.size);
-        await this.moveTo(this.x, 0, duration);
+        await this.moveTo(this.x, 0, this.riseDuration);
         await this._animationCtrl!.hide(200);
         this.updateTouchable(false);
     }
 
     private async bringBackToLife() {
-        // alive aready
         if (!this._died) {
             return;
         }
@@ -251,72 +246,25 @@ export class BBBubble extends HTMLElement {
         this._growUp = false;
 
         if (!this._immortal) {
-            const rSize = this.getRandomSize();
-            await this.updateSize(rSize);
+            await this.updateSize(this.randomSize);
             await this.moveToRandomPositionWithinBirthplace();
         } else {
             await this.updateSize(60);
             await this.moveTo(this.x, this.y);
         }
 
-        this._animationCtrl!.show(200, this.getOpacityBySize(this.size));
+        this._animationCtrl!.show(200, this.opacity);
 
         this.updateTouchable(true);
 
         this.eatOthers();
     }
 
-    private async delay(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-
-    private getBirthplace(): Area {
-        const parentRect = this.parent?.getBoundingClientRect();
-
-        if (!parentRect) {
-            return {
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0
-            };
-        }
-
-        const areaHeight = parentRect.height * .2;
-
-        return {
-            x: 0,
-            y:  parentRect.height - areaHeight,
-            width: parentRect.width,
-            height: areaHeight
-        };
-    }
-
-    private getRandomXWithinBirthplace() {
-        const birthplace = this.getBirthplace();
-        return Math.random() * birthplace.width + birthplace.x;
-    }
-
-    private getRandomYWithingBirthplace() {
-        const birthplace = this.getBirthplace();
-        return birthplace.height * 5 - this.size; // Math.random() * birthplace.height + birthplace.y;
-    }
-
     private getYOfComfortZone() {
-        const birthplace = this.getBirthplace();
+        const birthplace = this.birthplace;
         const sizeRatio = this.size / this.maxSize;
 
         return birthplace.y - birthplace.height * sizeRatio * 3.0;
-    }
-
-    private getRandomSize() {
-        const sizeAttr = this.getAttribute('size');
-        if (sizeAttr) {
-            return parseInt(sizeAttr, 10);
-        }
-
-        return Math.random() * 60 + this.minSize;
     }
 
     private async moveToComfortZone() {
@@ -326,7 +274,7 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        const duration = this.getRiseDurationBySize(this.size) + 100 * Math.random();
+        const duration = this.riseDuration + 100 * Math.random();
 
         await this.moveTo(this.x, y, duration);
 
@@ -347,11 +295,8 @@ export class BBBubble extends HTMLElement {
     }
 
     private async moveToRandomPositionWithinBirthplace() {
-        const x = this.getRandomXWithinBirthplace();
-        const y = this.getRandomYWithingBirthplace();
-
-        this._growUp = false;
-        return this.moveTo(x, y, 10);
+        const rPos = this.randomPos;
+        return this.moveTo(rPos.x, rPos.y, 10);
     }
 
     private getSafeX(x: number) {
@@ -380,22 +325,56 @@ export class BBBubble extends HTMLElement {
         return y;
     }
 
-    private getOpacityBySize(size: number) {
-        const ratio = (size - this.minSize) / (this.maxSize - this.minSize);
+    private get opacity() {
+        const ratio = (this.size - this.minSize) / (this.maxSize - this.minSize);
         return this.minOpacity + (this.maxOpacity - this.minOpacity) * ratio;
     }
 
-    private getRiseDurationBySize(size: number) {
-        const ratio = (size - this.minSize) / (this.maxSize - this.minSize);
+    private get riseDuration() {
+        const ratio = (this.size - this.minSize) / (this.maxSize - this.minSize);
         return this.maxRiseDuration - (this.maxRiseDuration - this.minRiseDuration) * (1 - ratio);
     }
 
-    private getBubbleElement(): HTMLElement | null {
-        return this.root.querySelector('.bubble') as HTMLElement;
+    private get randomSize() {
+        const sizeAttr = this.getAttribute('size');
+        if (sizeAttr) {
+            return parseInt(sizeAttr, 10);
+        }
+
+        return Math.random() * 60 + this.minSize;
+    }
+
+    private get randomPos(): Position {
+        const x = Math.random() * this.birthplace.width + this.birthplace.x;
+        const y = this.birthplace.height * 5 - this.size;
+
+        return { x, y };
     }
 
     private get bubbleElement() {
-        return this.getBubbleElement();
+        return this.root.querySelector('.bubble') as HTMLElement;
+    }
+
+    private get birthplace(): Area {
+        const parentRect = this.parent?.getBoundingClientRect();
+
+        if (!parentRect) {
+            return {
+                x: 0,
+                y: 0,
+                width: 0,
+                height: 0
+            };
+        }
+
+        const areaHeight = parentRect.height * .2;
+
+        return {
+            x: 0,
+            y:  parentRect.height - areaHeight,
+            width: parentRect.width,
+            height: areaHeight
+        };
     }
 
     private get parent() {
@@ -430,46 +409,9 @@ export class BBBubble extends HTMLElement {
         return this._immortal;
     }
 
-    public get expanded() {
-        return this._expanded;
-    }
-
-    public set expanded(value: boolean) {
-        if (value === this._expanded) {
-            return;
-        }
-
-        this._expanded = value;
-
-        if (value) {
-            this.expand().then(this.reposition.bind(this));
-        } else {
-            this.collapse().then(this.reposition.bind(this));
-        }
-    }
-
-    private reposition() {
-        return this.moveTo(this.x, this.y, 500)
-    }
 
     public get AnimationCtrl() {
         return this._animationCtrl;
-    }
-
-    private _tmpSize: number = 0;
-    private _expanded: boolean = false;
-
-    private expand() {
-        this._tmpSize = this.size;
-        return this.updateSize(this.maxSize);
-    }
-
-    private collapse() {
-        if (this._tmpSize <= 0) {
-            return Promise.resolve();
-        }
-
-        return this.updateSize(this._tmpSize);
     }
 
     private getSafeSize(size: number): number {
