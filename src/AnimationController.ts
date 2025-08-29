@@ -170,8 +170,8 @@ export class AnimationController {
 
   public breathe() {
     this.animate('breathe', [
-      {transform: 'translate(0px, -2px)'},
-      {transform: 'translate(0px, 2px)'},
+      {transform: 'translate3d(0px, -2px, 0)'},
+      {transform: 'translate3d(0px, 2px, 0)'},
     ], {
         duration: 2000,
         direction: "alternate",
@@ -187,8 +187,8 @@ export class AnimationController {
 
     return new Promise((resolve) => {
       this.animate('move', [
-        {transform: `translate(${x0}px, ${y0}px)`},
-        {transform: `translate(${x}px, ${y}px)`},
+        {transform: `translate3d(${x0}px, ${y0}px, 0)`},
+        {transform: `translate3d(${x}px, ${y}px, 0)`},
       ], {
           duration: duration,
           iterations: 1,
