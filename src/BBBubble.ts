@@ -472,8 +472,16 @@ export class BBBubble extends HTMLElement {
         }
     }
 
+    private _space: DOMRect | undefined;
+
     private get space() {
-        return this.parent?.getBoundingClientRect();
+        if (this._space) {
+            return this._space;
+        }
+
+        this._space = this.parent?.getBoundingClientRect();
+
+        return this._space;
     }
 
     private getSafeSize(size: number): number {
