@@ -1,4 +1,4 @@
-import type { Position } from "../types/Position.ts";
+import type {Position} from "../types/Position.ts";
 
 export class AnimationController {
   element: HTMLElement;
@@ -20,7 +20,7 @@ export class AnimationController {
     const animation = this.element.animate(keyframes, {
       duration: 200,
       fill: 'forwards',
-      composite: 'add',
+      composite: 'replace',
       ...options
     });
 
@@ -30,8 +30,8 @@ export class AnimationController {
 
   async move(from: Position, to: Position, duration: number) {
     const a = this.animate('move', [
-      {transform: `translate3d(${from.x}px, ${from.y}px, 0)`},
-      {transform: `translate3d(${to.x}px, ${to.y}px, 0)`},
+      {translate: `${from.x}px ${from.y}px 0`},
+      {translate: `${to.x}px ${to.y}px 0`},
     ], {
         duration: duration,
         iterations: 1,
@@ -40,26 +40,28 @@ export class AnimationController {
 
     await a.finished;
 
-    a.commitStyles();
+    this.stop('move');
 
     return a;
   }
 
-  public async scaleTo(end: number, duration: number) {
+  private getShadowBoxByScale(scale: number) {
+    return `inset 0 -${(8 / scale).toFixed(1)}px ${(16 / scale).toFixed(1)}px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)`;
+  }
+
+  public async scaleTo(start: number, end: number, duration: number) {
       const a = this.animate('scale', [
-        {transform: `scale(${1})`},
-        {transform: `scale(${end})`},
+        {transform: `scale(${start})`, boxShadow: this.getShadowBoxByScale(start)},
+        {transform: `scale(${end})`, boxShadow: this.getShadowBoxByScale(end)},
       ], {
         duration: duration,
         iterations: 1,
       });
 
+
       await a.finished;
   }
 
-  stopBreathing() {
-    this.stop('breathe');
-  }
 
   cancel(name: string) {
     if (!this.animations.has(name)) {
@@ -95,8 +97,6 @@ export class AnimationController {
     });
 
     await a.finished;
-
-    a.commitStyles();
 
     return a;
   }

@@ -13,12 +13,15 @@ export class Glass extends HTMLElement {
         `;
     }
 
-    private bubbles: BBBubble[] = [];
+    public bubbles: BBBubble[] = [];
 
     private collectBubblesFromSlot() {
         const slot = this.root.querySelector('slot');
         if (slot) {
             this.bubbles = Array.from(slot.assignedElements()).filter(el => el instanceof BBBubble) as BBBubble[];
+            this.bubbles.forEach(bubble => {
+                bubble.onParentConnect();
+            })
         } else {
             this.bubbles = [];
         }
@@ -65,18 +68,22 @@ export class Glass extends HTMLElement {
 
         this.root.adoptedStyleSheets = [styleSheet];
 
+        this.setViewportHeight();
+
         this.collectBubblesFromSlot();
 
         window.addEventListener('resize', this.setViewportHeight);
         window.addEventListener('orientationchange', this.setViewportHeight);
 
-        this.setViewportHeight();
 
         this.wakeBubblesUp();
 
         setInterval(() => {
             const bubble = this.getRandomBubble();
-        }, 600);
+            bubble.lifeCycle.nextStage();
+        }, 1000);
+
+        console.log("parent connected")
     }
 
     public disconnectedCallback() {
