@@ -30,30 +30,12 @@ export class Glass extends HTMLElement {
         document.documentElement.style.setProperty('--myvh', `${vh}px`);
     }
 
-    // 初始设置
-
-    public eatOthers = (a: BBBubble) => {
-        return this.bubbles.reduce(
-            (prevPromise, currentBubble) =>
-                prevPromise.then(() => a.tryEat(currentBubble).then()),
-            Promise.resolve()
-        );
-    }
-
     private getRandomBubble() {
         const index = Math.floor(Math.random() * this.bubbles.length);
         return this.bubbles[index];
     }
 
     public wakeBubblesUp() {
-        return this.bubbles.filter(b => b.died).reduce(
-            (prevPromise, currentBubble) =>
-                prevPromise.then(async () => {
-                    currentBubble.died = false;
-                    await this.delay(50 + Math.random() * 100);
-                }),
-            Promise.resolve()
-        );
     }
 
     public get glass(): HTMLElement | null {
@@ -94,24 +76,7 @@ export class Glass extends HTMLElement {
 
         setInterval(() => {
             const bubble = this.getRandomBubble();
-            if (bubble.immortal) {
-                return;
-            }
-
-            if (bubble.growUp && !bubble.died) {
-                bubble.died = true;
-                return;
-            }
-
-            if (bubble.died) {
-                bubble.died = false;
-                return;
-            }
         }, 600);
-    }
-
-    private async delay(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     public disconnectedCallback() {
