@@ -1,4 +1,4 @@
-import type { Position } from "./Position";
+import type { Position } from "../types/Position.ts";
 
 export class AnimationController {
   element: HTMLElement;
@@ -13,7 +13,7 @@ export class AnimationController {
       this.cancel(name);
     }
 
-    if (options.hasOwnProperty('duration') && options.duration as number < 0) {
+    if (options.hasOwnProperty('duration') && (options.duration as number) < 0) {
       delete options.duration;
     }
 
@@ -40,6 +40,8 @@ export class AnimationController {
 
     await a.finished;
 
+    a.commitStyles();
+
     return a;
   }
 
@@ -50,7 +52,6 @@ export class AnimationController {
       ], {
         duration: duration,
         iterations: 1,
-        composite: 'add'
       });
 
       await a.finished;
@@ -73,7 +74,7 @@ export class AnimationController {
       return;
     }
 
-    this.animations.get(name)?.cancel;
+    this.animations.get(name)?.cancel();
   }
 
   stop(name: string) {
@@ -81,5 +82,22 @@ export class AnimationController {
       this.cancel(name);
       this.animations.delete(name);
     }
+  }
+
+  async fade(opacity: number, targetOpacity: number, defaultAnimationDuration: number) {
+    const a = this.animate('fade', [
+      {opacity: opacity},
+      {opacity: targetOpacity},
+    ], {
+      duration: defaultAnimationDuration,
+      iterations: 1,
+      easing: 'ease-in-out',
+    });
+
+    await a.finished;
+
+    a.commitStyles();
+
+    return a;
   }
 }

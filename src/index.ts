@@ -1,6 +1,5 @@
-import {Glass} from "./Glass";
-import {BubbleEvent} from "./BubbleEvent";
-import {BBBubble} from './BBBubble';
+import {Glass} from "./elements/Glass.ts";
+import {BBBubble} from './elements/BBBubble.ts';
 
 if (!window.customElements.get('bb-bubble')) {
     window.BBBubble = BBBubble;
@@ -26,7 +25,6 @@ declare global {
 
 export {
     BBBubble,
-    BubbleEvent,
     Glass,
 }
 

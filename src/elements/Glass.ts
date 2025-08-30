@@ -1,4 +1,4 @@
-import { BBBubble } from "./BBBubble";
+import { BBBubble } from "./BBBubble.ts";
 
 export class Glass extends HTMLElement {
     root: ShadowRoot;

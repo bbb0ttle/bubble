@@ -11,6 +11,7 @@ export function css(): string {
     .bubble {
         width: 20px;
         height: 20px;
+        opacity: 0;
 
         border-radius: 50%;
         
@@ -21,6 +22,7 @@ export function css(): string {
         transform: translate3d(0, 0, 0);
         
         display: grid;
+
         place-content: center;
         
         overflow: hidden;
