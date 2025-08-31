@@ -54,6 +54,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     };
 
     onClick: () => Promise<void> = async () => {
+        await this.actor.bounce();
         await this.actor.lifeCycle.nextStage();
     };
 

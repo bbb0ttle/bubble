@@ -152,6 +152,13 @@ export class BBBubble extends HTMLElement {
         this.size = safeSize;
     }
 
+    async bounce(duration = this.configuration.defaultAnimationDuration) {
+        const originSize = this.size;
+        await this.scaleTo(originSize * 1.1, duration * .5).then();
+        await this.scaleTo(originSize * 0.9, duration * .3).then();
+        await this.scaleTo(originSize, duration * .2).then();
+    }
+
     async fade(targetOpacity: number, duration: number = this.configuration.defaultAnimationDuration) {
         await this.animationCtrl.fade(this.opacity, targetOpacity, duration);
         this.opacity = targetOpacity;
