@@ -155,10 +155,15 @@ export class BBBubble extends HTMLElement {
     }
 
     async scaleTo(targetSize: number, duration: number = this.configuration.defaultAnimationDuration) {
-        const initSize = this.configuration.initSize;
         const safeSize = this.getSafeSize(targetSize);
-        const scale = safeSize / initSize;
-        await this.animationCtrl.scaleTo(this.size / initSize, scale, duration);
+        this.element!.style.transitionDuration = duration + 'ms';
+        // const scale = safeSize / initSize;
+        // await this.animationCtrl.scaleTo(this.size / initSize, scale, duration);
+        await new Promise(resolve => {
+            this.updateSize(safeSize);
+
+            setTimeout(resolve, duration);
+        })
         this.size = safeSize;
     }
 
@@ -290,6 +295,13 @@ export class BBBubble extends HTMLElement {
             return maxSize;
         }
         return size;
+    }
+
+    private updateSize(size: number) {
+        if (this.element) {
+            this.element.style.width = `${size}px`;
+            this.element.style.height = `${size}px`;
+        }
     }
 
     private getSafePos(pos: Position): Position {
