@@ -121,11 +121,21 @@ export class BBBubble extends HTMLElement {
         this.addEventListener('click', this.behavior.onClick);
     }
 
+    moving = false;
+
     async moveTo(target: Position, duration: number = 200) {
+        if (this.moving) {
+            return;
+        }
+
+        this.moving = true;
+
         target = this.getSafePos(target);
 
         await this.animationCtrl.move(this.position, target, duration);
         this.position = target;
+
+        this.moving = false;
     }
 
     async reposition(duration: number = 100) {

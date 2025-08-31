@@ -97,6 +97,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
+        if (another.moving) {
+            return false;
+        }
+
         if (!(another.behavior instanceof NormalBubbleBehavior)) {
             return false;
         }
