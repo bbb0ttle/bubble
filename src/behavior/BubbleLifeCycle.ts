@@ -12,11 +12,20 @@ export class BubbleLifeCycle {
         this.stage = stage;
     }
 
+    private _transitioning = false;
     async nextStage(): Promise<void> {
+        if (this._transitioning) {
+            return;
+        }
+
+        this._transitioning = true;
+
         const next = this.stageCycleMap.get(this.stage);
         if (next) {
             await this.goto(next);
         }
+
+        this._transitioning = false;
     }
 
     async goto(stage: Stage): Promise<void> {
@@ -32,8 +41,8 @@ export class BubbleLifeCycle {
 
 
     private async born() {
-        this.stage = Stage.BORN;
         await this.bubble.behavior.onBorn();
+        this.stage = Stage.BORN;
         this.bubble.dispatchEvent(new CustomEvent(Stage.BORN, { bubbles: true, composed: true }));
     }
 
@@ -41,8 +50,8 @@ export class BubbleLifeCycle {
         if (!this.bubble.behavior.isReadyToDie()) {
             return;
         }
-        this.stage = Stage.DIED;
         await this.bubble.behavior.onDeath();
+        this.stage = Stage.DIED;
         this.bubble.dispatchEvent(new CustomEvent(Stage.DIED, { bubbles: true, composed: true }));
     }
 

@@ -2,8 +2,8 @@ import {css} from "../style/style.ts";
 import type {Position} from "../types/Position.ts";
 import {AnimationController} from "../animation/AnimationController.ts";
 import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/BubbleConfiguration.ts";
-import {type BubbleBehavior } from "../behavior/BubbleBehavior.ts";
-import {BubbleLifeCycle} from "../behavior/BubbleLifeCycle.ts";
+import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
+import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
 import {NormalBubbleBehavior} from "../behavior/NormalBehavior.ts";
 
@@ -133,6 +133,14 @@ export class BBBubble extends HTMLElement {
     }
 
     isOverlapWith(another: BBBubble): boolean {
+        if (this.lifeCycle.isAt(Stage.DIED)) {
+            return false;
+        }
+
+        if (another.lifeCycle.isAt(Stage.DIED)) {
+            return false;
+        }
+
         const distBetweenBubbles = Math.sqrt(
             Math.pow(this.position.x - another.position.x, 2) + Math.pow(this.position.y - another.position.y, 2));
 

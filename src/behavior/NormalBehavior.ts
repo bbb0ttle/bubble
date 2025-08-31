@@ -95,19 +95,14 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     }
 
     private async eat(another: BBBubble) {
-        if (another.lifeCycle.isAt(Stage.DIED)) {
-            return false;
-        }
-
-        if (this.actor.lifeCycle.isAt(Stage.DIED)) {
-            return false;
-        }
-
         const moveDuration = 50 + 50 * Math.random();
 
         another.scaleTo(this.actor.configuration.minSize).then();
         another.fade(0, moveDuration).then();
-        another.moveTo(this.actor.centerPos(), moveDuration).then();
+        another.moveTo(this.actor.centerPos(), moveDuration).then(() => {
+            another.display(false);
+        });
+
         another.lifeCycle.goto(Stage.DIED).then();
 
         const rate = this.actor.configuration.sizeGrowRate;
