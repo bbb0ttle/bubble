@@ -12,23 +12,24 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     private _eatCount = 0;
 
     onBorn: () => Promise<void> = async () => {
-        // move to born position
-        await this.actor.moveTo(this.actor.randomInitPos());
+        this.actor.display(false);
 
         await this.actor.scaleTo(this.actor.randomInitSize());
 
+        await this.actor.moveTo(this.actor.randomInitPos(), 1);
+
+        this.actor.display(true);
+
         this.actor.fade(this.actor.randomInitOpacity()).then();
 
-
-        await this.eatOthers();
-
+        await this.eatEachOther();
     };
 
     onGrown: () => Promise<void> = async () => {
-        await this.actor.moveTo(this.actor.idlePos(), this.actor.moveDuration());
+        await this.actor.moveTo(this.actor.idlePos(), this.actor.moveDuration() + 100 * Math.random());
         this.actor.fade(this.actor.randomInitOpacity()).then();
 
-        await this.eatOthers();
+        await this.eatEachOther();
     }
 
     onDeath: () => Promise<void> = async () => {
@@ -37,6 +38,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         await this.actor.fade(0);
 
         await this.actor.scaleTo(this.actor.configuration.initSize);
+
+        await this.actor.moveTo(this.actor.randomInitPos());
+
+        this.actor.display(false);
 
         this._eatCount = 0;
     };
@@ -52,12 +57,24 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         await this.actor.lifeCycle.nextStage();
     };
 
-    private async eatOthers() {
-        if (!this.actor.getSiblings().length) {
+    private async eatEachOther() {
+        const others = this.actor.getSiblings();
+        if (!others.length) {
             return;
         }
 
-        for (const another of this.actor.getSiblings()) {
+        for (const another of others) {
+            await (another.behavior as NormalBubbleBehavior).eatOthers();
+        }
+    }
+
+    private async eatOthers() {
+        const others = this.actor.getSiblings();
+        if (!others.length) {
+            return;
+        }
+
+        for (const another of others) {
             const eatResult = await this.tryEat(another);
             if (eatResult) {
                 this._eatCount++;
@@ -86,26 +103,26 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
-        another.scaleTo(this.actor.configuration.minSize).then();
-        await another.fade(0, 100);
-
-        await this.actor.scaleTo(this.actor.size + another.size * 0.2);
-
         const moveDuration = 50 + 50 * Math.random();
-        another.fade(0, moveDuration).then();
-        await another.moveTo(this.actor.centerPos(), moveDuration);
 
+        another.scaleTo(this.actor.configuration.minSize).then();
+        another.fade(0, moveDuration).then();
+        another.moveTo(this.actor.centerPos(), moveDuration).then();
         another.lifeCycle.goto(Stage.DIED).then();
+
+        const rate = this.actor.configuration.sizeGrowRate;
+
+        await this.actor.scaleTo(this.actor.size + another.size * rate);
         await this.actor.moveTo(this.actor.idlePos(), this.actor.moveDuration());
 
         return true;
     }
 
     isReadyToDie(): boolean {
-        if (this._eatCount <= 0) {
-            return false;
-        }
+        return true;
+    }
 
-        return Math.random() < .5;
+    isReadyToGrow(): boolean {
+        return true;
     }
 }

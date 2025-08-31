@@ -17,6 +17,8 @@ export interface BubbleConfiguration {
 
     maxSize: number;
 
+    sizeGrowRate: number;
+
     maxMoveDuration: number;
 
     minMoveDuration: number;
@@ -29,7 +31,7 @@ export interface BubbleConfiguration {
 export class BaseBubbleConfiguration implements BubbleConfiguration {
     initSize: number = 20;
 
-    minSize: number = 80;
+    minSize: number = 20;
 
     sizeRandomRate: number = 60;
 
@@ -37,7 +39,7 @@ export class BaseBubbleConfiguration implements BubbleConfiguration {
 
     defaultAnimationDuration: number = 200;
 
-    spacePadding: number = 20;
+    spacePadding: number = 10;
 
     initPos: Position = {x: 0, y: 0};
 
@@ -46,6 +48,8 @@ export class BaseBubbleConfiguration implements BubbleConfiguration {
     maxOpacity: number = 0.9;
 
     minOpacity: number = 0.5;
+
+    sizeGrowRate: number = 0.2;
 
     maxMoveDuration: number = 600;
 

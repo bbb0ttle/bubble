@@ -13,41 +13,11 @@ export class BubbleLifeCycle {
     }
 
     async nextStage(): Promise<void> {
-        switch (this.stage) {
-            case Stage.DIED:
-                await this.born();
-                break;
-            case Stage.BORN:
-                await this.grown();
-                break;
-            case Stage.GROWN:
-                if (!this.bubble.behavior.isReadyToDie()) {
-                    return;
-                }
-                await this.died();
-                break;
+        const next = this.stageCycleMap.get(this.stage);
+        if (next) {
+            await this.goto(next);
         }
     }
-
-    private async died() {
-        await this.bubble.behavior.onDeath();
-
-        this.stage = Stage.DIED;
-        this.bubble.dispatchEvent(new CustomEvent(Stage.DIED, { bubbles: true, composed: true }));
-    }
-
-    private async born() {
-        await this.bubble.behavior.onBorn();
-
-        this.stage = Stage.BORN;
-        this.bubble.dispatchEvent(new CustomEvent(Stage.BORN, { bubbles: true, composed: true }));
-    }
-
-    private stageActionMap: Map<Stage, () => Promise<void>> = new Map([
-        [Stage.DIED, this.died.bind(this)],
-        [Stage.BORN, this.born.bind(this)],
-        [Stage.GROWN, this.grown.bind(this)],
-    ]);
 
     async goto(stage: Stage): Promise<void> {
         const action = this.stageActionMap.get(stage);
@@ -60,14 +30,44 @@ export class BubbleLifeCycle {
         return this.stage === stage;
     }
 
-    private stage: Stage;
-    private bubble: BBBubble;
 
+    private async born() {
+        this.stage = Stage.BORN;
+        await this.bubble.behavior.onBorn();
+        this.bubble.dispatchEvent(new CustomEvent(Stage.BORN, { bubbles: true, composed: true }));
+    }
+
+    private async died() {
+        if (!this.bubble.behavior.isReadyToDie()) {
+            return;
+        }
+        this.stage = Stage.DIED;
+        await this.bubble.behavior.onDeath();
+        this.bubble.dispatchEvent(new CustomEvent(Stage.DIED, { bubbles: true, composed: true }));
+    }
 
     private async grown() {
-        await this.bubble.behavior.onGrown();
+        if (!this.bubble.behavior.isReadyToGrow()) {
+            return;
+        }
 
+        await this.bubble.behavior.onGrown();
         this.stage = Stage.GROWN;
         this.bubble.dispatchEvent(new CustomEvent(Stage.GROWN, { bubbles: true, composed: true }));
     }
+
+    private stageActionMap: Map<Stage, () => Promise<void>> = new Map([
+        [Stage.DIED, this.died.bind(this)],
+        [Stage.BORN, this.born.bind(this)],
+        [Stage.GROWN, this.grown.bind(this)],
+    ]);
+
+    private stageCycleMap: Map<Stage, Stage> = new Map([
+        [Stage.DIED, Stage.BORN],
+        [Stage.BORN, Stage.GROWN],
+        [Stage.GROWN, Stage.DIED],
+    ]);
+
+    private stage: Stage;
+    private bubble: BBBubble;
 }

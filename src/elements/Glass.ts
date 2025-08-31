@@ -81,7 +81,7 @@ export class Glass extends HTMLElement {
         setInterval(() => {
             const bubble = this.getRandomBubble();
             bubble.lifeCycle.nextStage();
-        }, 1000);
+        }, 600);
 
         console.log("parent connected")
     }

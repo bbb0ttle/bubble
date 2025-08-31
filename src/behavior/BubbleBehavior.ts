@@ -5,9 +5,11 @@ export interface BubbleBehavior {
 
     onBorn: () => Promise<void>;
 
-    isReadyToDie: () => boolean;
+    isReadyToGrow: () => boolean;
 
     onGrown: () => Promise<void>;
+
+    isReadyToDie: () => boolean;
 
     onDeath: () => Promise<void>;
 

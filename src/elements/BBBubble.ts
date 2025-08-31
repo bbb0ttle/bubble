@@ -57,8 +57,8 @@ export class BBBubble extends HTMLElement {
 
             x: originRect.x + this.configuration.spacePadding,
             y: originRect.y + this.configuration.spacePadding,
-            width: originRect.width - this.configuration.spacePadding * 2,
-            height: originRect.height - this.configuration.spacePadding * 2
+            width: originRect.width,
+            height: originRect.height,
         };
 
         const areaHeight = this.spaceRect.height * .2;
@@ -82,7 +82,6 @@ export class BBBubble extends HTMLElement {
         }
     }
 
-    // public
     async learn(someNew: BubbleBehavior) {
         this.removeEventListener('click', this.behavior.onClick);
         this.behavior = someNew;
@@ -91,8 +90,25 @@ export class BBBubble extends HTMLElement {
     }
 
     async moveTo(target: Position, duration: number = 200) {
+        target = this.getSafePos(target);
         await this.animationCtrl.move(this.position, target, duration);
         this.position = target;
+    }
+
+    async reposition(duration: number = 100) {
+        await this.moveTo(this.position, duration);
+    }
+
+    display(show: boolean) {
+        if (!this.element) {
+            return;
+        }
+
+        if (!show) {
+            this.element.style.display = "none";
+        } else {
+            this.element.style.display = 'grid';
+        }
     }
 
     async scaleTo(targetSize: number) {
@@ -131,14 +147,14 @@ export class BBBubble extends HTMLElement {
         const x = Math.random() * this.birthplaceRect.width + this.birthplaceRect.x;
         const y = this.birthplaceRect.height * 5 - this.size;
 
-        return { x, y };
+        return this.getSafePos({ x, y })
     }
 
     centerPos() {
-        return {
+        return this.getSafePos({
             x: this.position.x + this.size / 2,
             y: this.position.y + this.size / 2,
-        }
+        });
     }
 
     idlePos() {
@@ -151,21 +167,21 @@ export class BBBubble extends HTMLElement {
 
         const y = birthplace.y - birthplace.height * sizeRatio * 3.0;
 
-        return {
+        return this.getSafePos({
             x: this.position.x,
             y,
-        }
+        });
     }
 
     topPos() {
-        return {
+        return this.getSafePos({
             x: this.position.x,
             y: 0
-        }
+        });
     }
 
     randomInitSize() {
-        return Math.random() * this.configuration.sizeRandomRate + this.configuration.minSize;
+        return this.getSafeSize(Math.random() * this.configuration.sizeRandomRate + this.configuration.minSize);
     }
 
     randomInitOpacity() {
@@ -185,6 +201,9 @@ export class BBBubble extends HTMLElement {
     // 尺寸
     size: number;
 
+    // 位置
+    position: Position;
+
     // 动画
     animationCtrl: AnimationController;
 
@@ -202,9 +221,9 @@ export class BBBubble extends HTMLElement {
 
     private element: HTMLElement | null = null;
     private opacity: number;
-    private position: Position;
     private spaceRect: DOMRect | null = null;
     private birthplaceRect: DOMRect | null = null;
+
     private getSafeSize(size: number): number {
         const { minSize, maxSize } = this.configuration;
         if (size < minSize) {
@@ -213,5 +232,40 @@ export class BBBubble extends HTMLElement {
             return maxSize;
         }
         return size;
+    }
+
+    private getSafePos(pos: Position): Position {
+        return {
+            x: this.getSafeX(pos.x),
+            y: this.getSafeY(pos.y)
+        }
+    }
+
+    private getSafeX(x: number) {
+        const { spacePadding } = this.configuration;
+        if (x < spacePadding ) {
+            return spacePadding;
+        }
+
+        let parentWidth = this.spaceRect?.width || 0;
+        if (x > parentWidth - this.size - spacePadding) {
+            return parentWidth - this.size - spacePadding;
+        }
+
+        return x;
+    }
+
+    private getSafeY(y: number) {
+        const { spacePadding } = this.configuration;
+        if (y < spacePadding) {
+            return spacePadding;
+        }
+
+        let parentHeight = this.spaceRect?.height || 0;
+        if (y > parentHeight - this.size - spacePadding) {
+            return parentHeight - this.size - spacePadding;
+        }
+
+        return y;
     }
 }
