@@ -27,7 +27,7 @@ export class ImmortalBehavior implements BubbleBehavior {
         await this.actor.scaleTo(80);
         this.actor.display(true)
         this.actor.fade(this.actor.randomInitOpacity()).then();
-        await this.actor.moveTo({ x: 80, y: 80 })
+        await this.actor.moveTo({ x: 50, y: 50 })
 
         this.born = true;
     }

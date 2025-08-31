@@ -29,7 +29,7 @@ export interface BubbleConfiguration {
 }
 
 export class BaseBubbleConfiguration implements BubbleConfiguration {
-    initSize: number = 20;
+    initSize: number = 100;
 
     minSize: number = 20;
 

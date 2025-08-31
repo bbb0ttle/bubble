@@ -43,14 +43,10 @@ export class AnimationController {
     return a;
   }
 
-  private getShadowBoxByScale(scale: number) {
-    return `inset 0 -${(8 / scale).toFixed(1)}px ${(16 / scale).toFixed(1)}px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)`;
-  }
-
   public async scaleTo(start: number, end: number, duration: number) {
       const a = this.animate('scale', [
-        {transform: `scale(${start})`, boxShadow: this.getShadowBoxByScale(start)},
-        {transform: `scale(${end})`, boxShadow: this.getShadowBoxByScale(end)},
+        {transform: `scale(${start})`},
+        {transform: `scale(${end})`},
       ], {
         duration: duration,
         iterations: 1,

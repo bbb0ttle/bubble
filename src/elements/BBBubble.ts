@@ -68,7 +68,7 @@ export class BBBubble extends HTMLElement {
     connectedCallback() {
         // style
         const stylesheet = new CSSStyleSheet();
-        stylesheet.replaceSync(css());
+        stylesheet.replaceSync(css(this.configuration.initSize));
         this.root.adoptedStyleSheets = [stylesheet];
 
         this.element = this.root.querySelector('.bubble');
