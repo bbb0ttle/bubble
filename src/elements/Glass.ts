@@ -1,4 +1,5 @@
 import { BBBubble } from "./BBBubble.ts";
+import {NormalBubbleBehavior} from "../behavior/NormalBehavior.ts";
 
 export class Glass extends HTMLElement {
     root: ShadowRoot;
@@ -38,7 +39,13 @@ export class Glass extends HTMLElement {
         return this.bubbles[index];
     }
 
-    public wakeBubblesUp() {
+    public async wakeBubblesUp() {
+        for (const bubble of this.bubbles) {
+            await bubble?.lifeCycle.nextStage();
+            if (bubble.behavior instanceof NormalBubbleBehavior) {
+                await bubble.behavior.eatEachOther();
+            }
+        }
     }
 
     public get glass(): HTMLElement | null {
@@ -76,7 +83,7 @@ export class Glass extends HTMLElement {
         window.addEventListener('orientationchange', this.setViewportHeight);
 
 
-        this.wakeBubblesUp();
+        this.wakeBubblesUp().then();
 
         setInterval(() => {
             const bubble = this.getRandomBubble();

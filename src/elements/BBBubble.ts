@@ -9,6 +9,7 @@ import type {Glass} from "./Glass.ts";
 import {NormalBubbleBehavior} from "../behavior/NormalBehavior.ts";
 // @ts-ignore
 import {DebugBehavior} from "../behavior/DebugBehavior.ts";
+import {ImmortalBehavior} from "../behavior/ImmortalBehavior.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -36,6 +37,32 @@ export class BBBubble extends HTMLElement {
         // this.behavior = new DebugBehavior(this);
         this.lifeCycle = new BubbleLifeCycle(this);
         this.space = this.parentElement as Glass;
+    }
+
+    static get observedAttributes() {
+        return ["type"];
+    }
+
+    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+        if (name === "type" && oldValue !== newValue) {
+            let behavior: BubbleBehavior;
+
+            switch (newValue) {
+                case "normal":
+                    behavior = new NormalBubbleBehavior(this);
+                    break;
+                case "debug":
+                    behavior = new DebugBehavior(this);
+                    break;
+                case "immortal":
+                    behavior = new ImmortalBehavior(this);
+                    break;
+                default:
+                    behavior = new NormalBubbleBehavior(this);
+            }
+
+            this.learn(behavior).then();
+        }
     }
 
     connectedCallback() {
@@ -84,13 +111,14 @@ export class BBBubble extends HTMLElement {
             top: payload.y,
             ...payload
         }
+
+        this.behavior.onGlassReady().then();
     }
 
     async learn(someNew: BubbleBehavior) {
         this.removeEventListener('click', this.behavior.onClick);
         this.behavior = someNew;
         this.addEventListener('click', this.behavior.onClick);
-        await this.behavior.onBorn();
     }
 
     async moveTo(target: Position, duration: number = 200) {
@@ -116,11 +144,11 @@ export class BBBubble extends HTMLElement {
         }
     }
 
-    async scaleTo(targetSize: number) {
+    async scaleTo(targetSize: number, duration: number = this.configuration.defaultAnimationDuration) {
         const initSize = this.configuration.initSize;
         const safeSize = this.getSafeSize(targetSize);
         const scale = safeSize / initSize;
-        await this.animationCtrl.scaleTo(this.size / initSize, scale, this.configuration.defaultAnimationDuration);
+        await this.animationCtrl.scaleTo(this.size / initSize, scale, duration);
         this.size = safeSize;
     }
 

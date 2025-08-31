@@ -12,6 +12,10 @@ export class BubbleLifeCycle {
         this.stage = stage;
     }
 
+    get IsTransitioning(): boolean {
+        return this._transitioning;
+    }
+
     private _transitioning = false;
     async nextStage(): Promise<void> {
         if (this._transitioning) {

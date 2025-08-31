@@ -1,12 +1,14 @@
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
 import  {type BBBubble} from "../elements/BBBubble.ts";
 
-export class DebugBehavior implements BubbleBehavior {
-    actor: BBBubble;
-
+export class ImmortalBehavior implements BubbleBehavior {
     constructor(bubble: BBBubble) {
         this.actor = bubble;
     }
+
+    actor: BBBubble;
+
+    private born = false;
 
     isReadyToDie(): boolean {
         return false;
@@ -17,9 +19,17 @@ export class DebugBehavior implements BubbleBehavior {
     }
 
     async onBorn(): Promise<void> {
-        await this.actor.scaleTo(600);
-        await this.actor.moveTo({ x: 1000, y: 2000});
-        await this.actor.fade(1);
+        if (this.born) {
+            return;
+        }
+
+        this.actor.display(false);
+        await this.actor.scaleTo(80);
+        this.actor.display(true)
+        this.actor.fade(this.actor.randomInitOpacity()).then();
+        await this.actor.moveTo({ x: 80, y: 80 })
+
+        this.born = true;
     }
 
     onClick(): Promise<void> {
@@ -39,7 +49,7 @@ export class DebugBehavior implements BubbleBehavior {
     }
 
     onGlassReady(): Promise<void> {
-        return Promise.resolve(undefined);
+        return this.onBorn()
     }
 
 }

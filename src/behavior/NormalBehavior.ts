@@ -1,4 +1,4 @@
-import  {type BBBubble} from "../elements/BBBubble.ts";
+import {type BBBubble} from "../elements/BBBubble.ts";
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
 import {Stage} from "./BubbleLifeCycle.ts";
 
@@ -57,13 +57,18 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         await this.actor.lifeCycle.nextStage();
     };
 
-    private async eatEachOther() {
+    async eatEachOther() {
         const others = this.actor.getSiblings();
         if (!others.length) {
             return;
         }
 
         for (const another of others) {
+            const anotherBubbleBehavior = another.behavior;
+            if (!(anotherBubbleBehavior instanceof NormalBubbleBehavior)) {
+                continue;
+            }
+
             await (another.behavior as NormalBubbleBehavior).eatOthers();
         }
     }
@@ -87,8 +92,16 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
+        if (this.actor.lifeCycle.IsTransitioning || another.lifeCycle.IsTransitioning) {
+            return false;
+        }
+
+        if (!(another.behavior instanceof NormalBubbleBehavior)) {
+            return false;
+        }
+
         if (this.actor.size < another.size) {
-            return (another.behavior as NormalBubbleBehavior).eat(this.actor);
+            return another.behavior.eat(this.actor);
         } else {
             return this.eat(another);
         }
@@ -97,13 +110,12 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     private async eat(another: BBBubble) {
         const moveDuration = 50 + 50 * Math.random();
 
-        another.scaleTo(this.actor.configuration.minSize).then();
+        another.scaleTo(this.actor.configuration.minSize, moveDuration).then();
         another.fade(0, moveDuration).then();
         another.moveTo(this.actor.centerPos(), moveDuration).then(() => {
             another.display(false);
+            another.lifeCycle.goto(Stage.DIED).then();
         });
-
-        another.lifeCycle.goto(Stage.DIED).then();
 
         const rate = this.actor.configuration.sizeGrowRate;
 
@@ -119,5 +131,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
     isReadyToGrow(): boolean {
         return this._eatCount >= 1
+        // return true;
+    }
+
+    onGlassReady(): Promise<void> {
+        return Promise.resolve(undefined);
     }
 }

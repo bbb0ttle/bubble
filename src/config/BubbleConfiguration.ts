@@ -39,7 +39,7 @@ export class BaseBubbleConfiguration implements BubbleConfiguration {
 
     defaultAnimationDuration: number = 200;
 
-    spacePadding: number = 20;
+    spacePadding: number = 10;
 
     initPos: Position = {x: 0, y: 0};
 
