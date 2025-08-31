@@ -40,8 +40,6 @@ export class AnimationController {
 
     await a.finished;
 
-    this.stop('move');
-
     return a;
   }
 

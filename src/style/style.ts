@@ -16,8 +16,6 @@ export function css(): string {
         border-radius: 50%;
         
         will-change: transform, opacity;
-
-        transition: transform .2s ease-in-out;
         
         display: grid;
 

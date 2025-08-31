@@ -118,6 +118,6 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     }
 
     isReadyToGrow(): boolean {
-        return true;
+        return this._eatCount >= 1
     }
 }

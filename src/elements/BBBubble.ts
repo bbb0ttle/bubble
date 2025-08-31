@@ -5,7 +5,10 @@ import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/Bubbl
 import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
 import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
+// @ts-ignore
 import {NormalBubbleBehavior} from "../behavior/NormalBehavior.ts";
+// @ts-ignore
+import {DebugBehavior} from "../behavior/DebugBehavior.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -30,6 +33,7 @@ export class BBBubble extends HTMLElement {
         this.element = this.root.querySelector(".bubble");
         this.animationCtrl = new AnimationController(this);
         this.behavior = new NormalBubbleBehavior(this);
+        // this.behavior = new DebugBehavior(this);
         this.lifeCycle = new BubbleLifeCycle(this);
         this.space = this.parentElement as Glass;
     }
@@ -55,8 +59,8 @@ export class BBBubble extends HTMLElement {
         this.spaceRect = {
             ...originRect,
 
-            x: originRect.x + this.configuration.spacePadding,
-            y: originRect.y + this.configuration.spacePadding,
+            x: 0,
+            y: 0,
             width: originRect.width,
             height: originRect.height,
         };
@@ -91,6 +95,7 @@ export class BBBubble extends HTMLElement {
 
     async moveTo(target: Position, duration: number = 200) {
         target = this.getSafePos(target);
+
         await this.animationCtrl.move(this.position, target, duration);
         this.position = target;
     }
@@ -251,13 +256,18 @@ export class BBBubble extends HTMLElement {
 
     private getSafeX(x: number) {
         const { spacePadding } = this.configuration;
-        if (x < spacePadding ) {
-            return spacePadding;
+
+        const leftBound = x - this.size / 2;
+
+        if (leftBound < spacePadding) {
+            return spacePadding + this.size / 2 - this.configuration.initSize / 2;
         }
 
+        const rightBound = x + this.size / 2;
+
         let parentWidth = this.spaceRect?.width || 0;
-        if (x > parentWidth - this.size - spacePadding) {
-            return parentWidth - this.size - spacePadding;
+        if (rightBound > parentWidth - spacePadding) {
+            return parentWidth - spacePadding - this.size / 2 - this.configuration.initSize / 2;
         }
 
         return x;
@@ -265,13 +275,16 @@ export class BBBubble extends HTMLElement {
 
     private getSafeY(y: number) {
         const { spacePadding } = this.configuration;
-        if (y < spacePadding) {
-            return spacePadding;
+
+        const topBound = y - this.size / 2;
+        if (topBound < spacePadding) {
+            return spacePadding + this.size / 2 - this.configuration.initSize / 2;
         }
 
         let parentHeight = this.spaceRect?.height || 0;
-        if (y > parentHeight - this.size - spacePadding) {
-            return parentHeight - this.size - spacePadding;
+        const bottomBound = y + this.size / 2;
+        if (bottomBound > parentHeight - spacePadding) {
+            return parentHeight - spacePadding - this.size / 2 - this.configuration.initSize / 2;
         }
 
         return y;
