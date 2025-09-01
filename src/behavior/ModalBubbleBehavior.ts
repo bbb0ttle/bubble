@@ -88,11 +88,13 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         this.actor.moveTo({ x: xOffset + padding, y: yOffset + padding }, duration * .2, true);
   
         await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
+        this.actor.innerHTML = "bbbubble@0.2.3-a.29</br>Made by bbki.ng";
         await this.actor.scaleTo(targetSize * 0.9, .3 * duration, true)
         await this.actor.scaleTo(targetSize, .2 * duration, true);
   
         this.actor.element!.style.zIndex = "2";
         this.actor.element!.style.background= "#fff";
+
     }
 
     private async exitFullscreen() {
@@ -102,11 +104,14 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         this.actor.moveTo(this._pos, duration * .2, true);
 
+        this.actor.innerHTML = "";
+
         await this.actor.scaleTo(size * 0.9, .5 * duration);
         await this.actor.scaleTo(size * 1.1, .3 * duration)
         await this.actor.scaleTo(size, .2 * duration);
 
         this.actor.element!.style.zIndex = "1";
         this.actor.element!.style.background= "none";
+
       }
 }
