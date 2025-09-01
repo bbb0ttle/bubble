@@ -25,8 +25,10 @@ declare global {
 }
 
 export {
-    behaviorRegistry,
-    BBBubble,
-    Glass,
-}
+    behaviorRegistry, BBBubble, Glass
+};
+
+export type { BubbleBehavior } from "./behavior/BubbleBehavior.ts";
+export type { Position } from "./types/Position.ts";
+
 
