@@ -5,7 +5,7 @@ import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/Bubbl
 import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
 import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
-import { behaviorRegistryInst } from "../behavior/BehaviorRegistry.ts";
+import { BehaviorRegistry } from "../behavior/BehaviorRegistry.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -29,7 +29,8 @@ export class BBBubble extends HTMLElement {
         this.size = this.configuration.initSize;
         this.element = this.root.querySelector(".bubble");
         this.animationCtrl = new AnimationController(this);
-        this.behavior = behaviorRegistryInst.get("default", this);
+        this.behaviorRegistry = new BehaviorRegistry();
+        this.behavior = this.behaviorRegistry.get("default", this);
         this.lifeCycle = new BubbleLifeCycle(this);
         this.space = this.parentElement as Glass;
     }
@@ -40,7 +41,7 @@ export class BBBubble extends HTMLElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name === "type" && oldValue !== newValue) {
-            const behavior: BubbleBehavior = behaviorRegistryInst.get(newValue, this);
+            const behavior: BubbleBehavior = this.behaviorRegistry.get(newValue, this);
             if (behavior) {
                 this.learn(behavior).then();
             }
@@ -253,6 +254,7 @@ export class BBBubble extends HTMLElement {
     animationCtrl: AnimationController;
 
     // 行为
+    behaviorRegistry: BehaviorRegistry;
     behavior: BubbleBehavior;
 
     // 生命周期

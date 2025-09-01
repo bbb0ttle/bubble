@@ -5,11 +5,25 @@ import { ImmortalBehavior } from "./ImmortalBehavior";
 import { ModalBubbleBehavior } from "./ModalBubbleBehavior";
 import { NormalBubbleBehavior } from "./NormalBehavior";
 
+const builtInBehaviorMap = new Map<string, Constructor<BubbleBehavior>>([
+    ['debug', DebugBehavior],
+    ['default', NormalBubbleBehavior],
+    ['immortal', ImmortalBehavior],
+    ['modal', ModalBubbleBehavior],
+]);
+
 type Constructor<T = {}> = new (...args: any[]) => T;
 
-class BehaviorRegistry {
+export class BehaviorRegistry {
     private constructors = new Map<string, Constructor<BubbleBehavior>>();
     private instances = new Map<string, Map<BBBubble, BubbleBehavior>>();
+
+    constructor() {
+      // 注册内置行为
+      for (const [key, Constructor] of builtInBehaviorMap.entries()) {
+        this.register(key, Constructor);
+      }
+    }
  
     // 行为注册
     register<T extends BubbleBehavior>(key: string, constructor: Constructor<T>) {
@@ -37,15 +51,4 @@ class BehaviorRegistry {
     isInstantiated(key: string, bubble: BBBubble): boolean {
       return this.instances.has(key) && this.instances.get(key)!.has(bubble);
     }
-}
-
-const behaviorRegistryInst = new BehaviorRegistry();
-
-behaviorRegistryInst.register('debug', DebugBehavior);
-behaviorRegistryInst.register('default', NormalBubbleBehavior);
-behaviorRegistryInst.register('immortal', ImmortalBehavior);
-behaviorRegistryInst.register('modal', ModalBubbleBehavior);
-
-export {
-    behaviorRegistryInst
 }

@@ -1,1 +1,1 @@
-export type BubbleType = "immortal" | "default" | "debug";
+export type BubbleType = "immortal" | "default" | "debug" | "modal";
