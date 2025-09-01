@@ -1,5 +1,6 @@
 import {Glass} from "./elements/Glass.ts";
 import {BBBubble} from './elements/BBBubble.ts';
+import {behaviorRegistryInst as behaviorRegistry} from "./behavior/BehaviorRegistry.ts";
 
 if (!window.customElements.get('bb-bubble')) {
     window.BBBubble = BBBubble;
@@ -24,6 +25,7 @@ declare global {
 }
 
 export {
+    behaviorRegistry,
     BBBubble,
     Glass,
 }
