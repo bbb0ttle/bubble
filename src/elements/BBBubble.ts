@@ -102,6 +102,10 @@ export class BBBubble extends HTMLElement {
             ...payload
         }
 
+        this.dispatchEvent(new CustomEvent('bubble-connected', {
+            bubbles: true,
+        }))
+
         this.behavior.onGlassReady().then();
     }
 
