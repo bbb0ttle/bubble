@@ -62,6 +62,8 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         
     };
 
+    private _ver: string = "0.2.3-a.30";
+
     private _fullscreen = false;
 
     private async enterFullscreen(space: DOMRect) {
@@ -69,10 +71,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
             return;
         }
 
-        console.log("space", space);
-  
         const whRatio = space.width / space.height;
-  
 
         const offset = Math.abs(space.width - space.height) / 2;
 
@@ -88,7 +87,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         this.actor.moveTo({ x: xOffset + padding, y: yOffset + padding }, duration * .2, true);
   
         await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
-        this.actor.innerHTML = "bbbubble@0.2.3-a.29</br>Made by bbki.ng";
+        this.actor.innerHTML = `bbbubble@${this._ver}</br>Made by bbki.ng`;
         await this.actor.scaleTo(targetSize * 0.9, .3 * duration, true)
         await this.actor.scaleTo(targetSize, .2 * duration, true);
   
@@ -98,20 +97,23 @@ export class ModalBubbleBehavior implements BubbleBehavior{
     }
 
     private async exitFullscreen() {
-        const duration = 200;
+        const duration = 100;
 
         const size = this._size;
 
-        this.actor.moveTo(this._pos, duration * .2, true);
+        const targetPos = {
+            x: this._pos.x,
+            y: this._pos.y + 5
+        }
 
+        this.actor.scaleTo(size, duration).then();
         this.actor.innerHTML = "";
 
-        await this.actor.scaleTo(size * 0.9, .5 * duration);
-        await this.actor.scaleTo(size * 1.1, .3 * duration)
-        await this.actor.scaleTo(size, .2 * duration);
+        await this.actor.moveTo(targetPos, duration, true);
+        await this.actor.moveTo(this._pos, duration * .2, true).then();
+
 
         this.actor.element!.style.zIndex = "1";
         this.actor.element!.style.background= "none";
-
       }
 }
