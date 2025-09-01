@@ -5,11 +5,7 @@ import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/Bubbl
 import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
 import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
-// @ts-ignore
-import {NormalBubbleBehavior} from "../behavior/NormalBehavior.ts";
-// @ts-ignore
-import {DebugBehavior} from "../behavior/DebugBehavior.ts";
-import {ImmortalBehavior} from "../behavior/ImmortalBehavior.ts";
+import { behaviorRegistryInst } from "../behavior/BehaviorRegistry.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -33,8 +29,7 @@ export class BBBubble extends HTMLElement {
         this.size = this.configuration.initSize;
         this.element = this.root.querySelector(".bubble");
         this.animationCtrl = new AnimationController(this);
-        this.behavior = new NormalBubbleBehavior(this);
-        // this.behavior = new DebugBehavior(this);
+        this.behavior = behaviorRegistryInst.get("default", this);
         this.lifeCycle = new BubbleLifeCycle(this);
         this.space = this.parentElement as Glass;
     }
@@ -45,23 +40,10 @@ export class BBBubble extends HTMLElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name === "type" && oldValue !== newValue) {
-            let behavior: BubbleBehavior;
-
-            switch (newValue) {
-                case "normal":
-                    behavior = new NormalBubbleBehavior(this);
-                    break;
-                case "debug":
-                    behavior = new DebugBehavior(this);
-                    break;
-                case "immortal":
-                    behavior = new ImmortalBehavior(this);
-                    break;
-                default:
-                    behavior = new NormalBubbleBehavior(this);
+            const behavior: BubbleBehavior = behaviorRegistryInst.get(newValue, this);
+            if (behavior) {
+                this.learn(behavior).then();
             }
-
-            this.learn(behavior).then();
         }
     }
 
