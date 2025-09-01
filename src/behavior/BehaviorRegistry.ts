@@ -16,9 +16,12 @@ type Constructor<T = {}> = new (...args: any[]) => T;
 
 export class BehaviorRegistry {
     private constructors = new Map<string, Constructor<BubbleBehavior>>();
-    private instances = new Map<string, Map<BBBubble, BubbleBehavior>>();
+    private instances = new Map<string, BubbleBehavior>();
 
-    constructor() {
+    private readonly bubble: BBBubble;
+
+    constructor(bubble: BBBubble) {
+        this.bubble = bubble;
       // 注册内置行为
       for (const [key, Constructor] of builtInBehaviorMap.entries()) {
         this.register(key, Constructor);
@@ -31,24 +34,23 @@ export class BehaviorRegistry {
     }
     
     // 按需获取行为实例
-    get<T extends BubbleBehavior>(key: string, bubble: BBBubble): T {
-      if (!this.isInstantiated(key, bubble)) {
+    get<T extends BubbleBehavior>(key: string): T | undefined {
+      if (!this.isInstantiated(key)) {
         const Constructor = this.constructors.get(key);
         if (!Constructor) {
-          throw new Error(`Service '${key}' not registered`);
+            return;
         }
-        const behavior = new Constructor(bubble);
 
-        this.instances.set(key, new Map([
-            [bubble, behavior]
-        ]));
+        const behavior = new Constructor(this.bubble);
+
+        this.instances.set(key,  behavior);
       }
 
-      return this.instances.get(key)?.get(bubble) as T;
+      return this.instances.get(key) as T;
     }
     
     // 检查是否已实例化
-    isInstantiated(key: string, bubble: BBBubble): boolean {
-      return this.instances.has(key) && this.instances.get(key)!.has(bubble);
+    isInstantiated(key: string): boolean {
+      return this.instances.has(key);
     }
 }

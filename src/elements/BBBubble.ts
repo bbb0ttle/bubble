@@ -29,8 +29,8 @@ export class BBBubble extends HTMLElement {
         this.size = this.configuration.initSize;
         this.element = this.root.querySelector(".bubble");
         this.animationCtrl = new AnimationController(this);
-        this.behaviorRegistry = new BehaviorRegistry();
-        this.behavior = this.behaviorRegistry.get("default", this);
+        this.behaviorRegistry = new BehaviorRegistry(this);
+        this.behavior = this.behaviorRegistry.get("default")!;
         this.lifeCycle = new BubbleLifeCycle(this);
         this.space = this.parentElement as Glass;
     }
@@ -41,10 +41,10 @@ export class BBBubble extends HTMLElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name === "type" && oldValue !== newValue) {
-            const behavior: BubbleBehavior = this.behaviorRegistry.get(newValue, this);
-            if (behavior) {
-                this.learn(behavior).then();
-            }
+            this.type = newValue;
+
+            const behavior = this.behaviorRegistry.get(this.type);
+            this.learn(behavior).then();
         }
     }
 
@@ -57,6 +57,13 @@ export class BBBubble extends HTMLElement {
         this.element = this.root.querySelector('.bubble');
         this.animationCtrl = new AnimationController(this.element!);
         this.addEventListener('click', this.behavior.onClick);
+
+        this.dispatchEvent(new CustomEvent('bubble-connected', {
+            bubbles: true,
+        }))
+
+        const behavior = this.behaviorRegistry.get(this.type);
+        this.learn(behavior).then();
     }
 
     disconnectedCallback() {
@@ -98,7 +105,11 @@ export class BBBubble extends HTMLElement {
         this.behavior.onGlassReady().then();
     }
 
-    async learn(someNew: BubbleBehavior) {
+    async learn(someNew: BubbleBehavior | undefined) {
+        if (!someNew) {
+            return;
+        }
+
         this.removeEventListener('click', this.behavior.onClick);
         this.behavior = someNew;
         this.addEventListener('click', this.behavior.onClick);
@@ -269,6 +280,7 @@ export class BBBubble extends HTMLElement {
 
     element: HTMLElement | null = null;
 
+    private type: string = "default";
     private opacity: number;
     private birthplaceRect: DOMRect | null = null;
 
