@@ -41,7 +41,6 @@ export function css(initSize: number): string {
         right: 0;
         bottom: 0;
         box-shadow: inset 0 -8px 16px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-        opacity: .9;
         z-index: -1
     }
 `
