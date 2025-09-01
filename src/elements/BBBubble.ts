@@ -105,14 +105,14 @@ export class BBBubble extends HTMLElement {
 
     moving = false;
 
-    async moveTo(target: Position, duration: number = 200) {
+    async moveTo(target: Position, duration: number = 200, force = false) {
         if (this.moving) {
             return;
         }
 
         this.moving = true;
 
-        target = this.getSafePos(target);
+        target = force ? target : this.getSafePos(target);
 
         await this.animationCtrl.move(this.position, target, duration);
         this.position = target;
@@ -136,8 +136,8 @@ export class BBBubble extends HTMLElement {
         }
     }
 
-    async scaleTo(targetSize: number, duration: number = this.configuration.defaultAnimationDuration) {
-        const safeSize = this.getSafeSize(targetSize);
+    async scaleTo(targetSize: number, duration: number = this.configuration.defaultAnimationDuration, force = false) {
+        const safeSize = force ? targetSize : this.getSafeSize(targetSize);
         this.element!.style.transitionDuration = duration + 'ms';
         // const scale = safeSize / initSize;
         // await this.animationCtrl.scaleTo(this.size / initSize, scale, duration);
@@ -260,13 +260,14 @@ export class BBBubble extends HTMLElement {
 
     // 活动空间
     space: Glass;
+    spaceRect: DOMRect | null = null;
 
     // 参数配置
     configuration: BubbleConfiguration;
 
-    private element: HTMLElement | null = null;
+    element: HTMLElement | null = null;
+
     private opacity: number;
-    private spaceRect: DOMRect | null = null;
     private birthplaceRect: DOMRect | null = null;
 
     private getSafeSize(size: number): number {

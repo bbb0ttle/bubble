@@ -2,6 +2,7 @@ import type { BBBubble } from "../elements/BBBubble";
 import type { BubbleBehavior } from "./BubbleBehavior";
 import { DebugBehavior } from "./DebugBehavior";
 import { ImmortalBehavior } from "./ImmortalBehavior";
+import { ModalBubbleBehavior } from "./ModalBubbleBehavior";
 import { NormalBubbleBehavior } from "./NormalBehavior";
 
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -43,6 +44,7 @@ const behaviorRegistryInst = new BehaviorRegistry();
 behaviorRegistryInst.register('debug', DebugBehavior);
 behaviorRegistryInst.register('default', NormalBubbleBehavior);
 behaviorRegistryInst.register('immortal', ImmortalBehavior);
+behaviorRegistryInst.register('modal', ModalBubbleBehavior);
 
 export {
     behaviorRegistryInst
