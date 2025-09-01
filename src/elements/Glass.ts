@@ -1,4 +1,5 @@
-import { BBBubble } from "./index.ts";
+import { BBBubble } from "./BBBubble.ts";
+import {NormalBubbleBehavior} from "../behavior/NormalBehavior.ts";
 
 export class Glass extends HTMLElement {
     root: ShadowRoot;
@@ -13,12 +14,15 @@ export class Glass extends HTMLElement {
         `;
     }
 
-    private bubbles: BBBubble[] = [];
+    public bubbles: BBBubble[] = [];
 
     private collectBubblesFromSlot() {
         const slot = this.root.querySelector('slot');
         if (slot) {
             this.bubbles = Array.from(slot.assignedElements()).filter(el => el instanceof BBBubble) as BBBubble[];
+            this.bubbles.forEach(bubble => {
+                bubble.onParentConnect();
+            })
         } else {
             this.bubbles = [];
         }
@@ -30,30 +34,18 @@ export class Glass extends HTMLElement {
         document.documentElement.style.setProperty('--myvh', `${vh}px`);
     }
 
-    // 初始设置
-
-    public eatOthers = (a: BBBubble) => {
-        return this.bubbles.reduce(
-            (prevPromise, currentBubble) =>
-                prevPromise.then(() => a.tryEat(currentBubble).then()),
-            Promise.resolve()
-        );
-    }
-
     private getRandomBubble() {
         const index = Math.floor(Math.random() * this.bubbles.length);
         return this.bubbles[index];
     }
 
-    public wakeBubblesUp() {
-        return this.bubbles.filter(b => b.died).reduce(
-            (prevPromise, currentBubble) =>
-                prevPromise.then(async () => {
-                    currentBubble.died = false;
-                    await this.delay(50 + Math.random() * 100);
-                }),
-            Promise.resolve()
-        );
+    public async wakeBubblesUp() {
+        for (const bubble of this.bubbles) {
+            await bubble?.lifeCycle.nextStage();
+            if (bubble.behavior instanceof NormalBubbleBehavior) {
+                await bubble.behavior.eatEachOther();
+            }
+        }
     }
 
     public get glass(): HTMLElement | null {
@@ -83,37 +75,22 @@ export class Glass extends HTMLElement {
 
         this.root.adoptedStyleSheets = [styleSheet];
 
+        this.setViewportHeight();
+
         this.collectBubblesFromSlot();
 
         window.addEventListener('resize', this.setViewportHeight);
         window.addEventListener('orientationchange', this.setViewportHeight);
 
-        this.setViewportHeight();
 
-        this.wakeBubblesUp();
-
-        await this.delay(2000);
+        this.wakeBubblesUp().then();
 
         setInterval(() => {
             const bubble = this.getRandomBubble();
-            if (bubble.immortal || bubble.expanded) {
-                return;
-            }
-
-            if (bubble.growUp && !bubble.died) {
-                bubble.died = true;
-                return;
-            }
-
-            if (!bubble.growUp && bubble.died) {
-                bubble.died = false;
-                return;
-            }
+            bubble.lifeCycle.nextStage();
         }, 600);
-    }
 
-    private async delay(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        console.log("parent connected")
     }
 
     public disconnectedCallback() {

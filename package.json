@@ -1,10 +1,9 @@
 {
   "name": "@bbb0ttle/bbbubble",
-  "version": "0.2.3",
+  "version": "0.2.3-a.28",
   "type": "module",
   "author": "bbbottle <b@bbki.ng>",
   "license": "MIT",
-  "packageManager": "pnpm@10.6.2",
   "main": "./dist/bubble.umd.cjs",
   "module": "./dist/bubble.js",
   "types": "./dist/index.d.ts",
