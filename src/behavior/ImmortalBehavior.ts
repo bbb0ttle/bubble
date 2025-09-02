@@ -58,4 +58,6 @@ export class ImmortalBehavior implements BubbleBehavior {
         return this.onBorn()
     }
 
+    onForgot: () => Promise<void> = async() => {};
+
 }

@@ -18,4 +18,6 @@ export interface BubbleBehavior {
     onTouch: (another: BBBubble) => Promise<void>;
 
     onClick: () => Promise<void>;
+
+    onForgot: () => Promise<void>
 }

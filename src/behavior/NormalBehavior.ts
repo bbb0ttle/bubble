@@ -130,6 +130,8 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         return true;
     }
 
+    onForgot: () => Promise<void> = async() => {};
+
     isReadyToDie(): boolean {
         return true;
     }

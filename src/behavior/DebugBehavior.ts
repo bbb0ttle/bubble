@@ -8,6 +8,8 @@ export class DebugBehavior implements BubbleBehavior {
         this.actor = bubble;
     }
 
+    onForgot: () => Promise<void> = async() => {};
+
     isReadyToDie(): boolean {
         return false;
     }

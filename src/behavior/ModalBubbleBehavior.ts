@@ -96,6 +96,8 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
     }
 
+    onForgot: () => Promise<void> = async() => {};
+
     private async exitFullscreen() {
         const duration = 100;
 
