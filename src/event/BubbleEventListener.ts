@@ -15,7 +15,7 @@ export class BubbleEventListener {
     private targetBubble: BBBubble;
 
     private handleClick(_evt: MouseEvent) {
-        this.targetBubble.behavior?.onClick.bind(this)
+        this.targetBubble.behavior?.onClick();
     };
   
     constructor(bubble: BBBubble, options: LongPressOptions = {}) {

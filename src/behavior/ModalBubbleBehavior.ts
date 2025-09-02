@@ -1,6 +1,7 @@
 import type { BBBubble } from "../elements/BBBubble";
 import type { Position } from "../types/Position";
 import type { BubbleBehavior } from "./BubbleBehavior";
+import pkgJons from "../../package.json" assert { type: "json" };
 
 export class ModalBubbleBehavior implements BubbleBehavior{
     public constructor(bubble: BBBubble) {
@@ -58,8 +59,6 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         
     };
 
-    private _ver: string = "0.2.3-a.46";
-
     private _fullscreen = false;
 
     private async enterFullscreen(space: DOMRect) {
@@ -83,7 +82,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         this.actor.moveTo({ x: xOffset + padding, y: yOffset + padding }, duration * .2, true);
   
         await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
-        this.actor.innerHTML = `bbbubble@${this._ver}</br>Made by bbki.ng`;
+        this.actor.innerHTML = `${pkgJons.name} ${pkgJons.version}</br>Made by ${pkgJons.author}`;
         await this.actor.scaleTo(targetSize * 0.9, .3 * duration, true)
         await this.actor.scaleTo(targetSize, .2 * duration, true);
   
