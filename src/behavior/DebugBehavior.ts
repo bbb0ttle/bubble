@@ -1,5 +1,6 @@
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
 import  {type BBBubble} from "../elements/BBBubble.ts";
+import type { Position } from "../types/Position.ts";
 
 export class DebugBehavior implements BubbleBehavior {
     actor: BBBubble;
@@ -43,5 +44,17 @@ export class DebugBehavior implements BubbleBehavior {
     onGlassReady(): Promise<void> {
         return Promise.resolve(undefined);
     }
+
+    onDrag?: ((pos: Position, originEvent: Event) => Promise<void>) | undefined = async (pos, _evt) => {
+        pos.x -= this.actor.size / 2;
+        pos.y -= this.actor.size / 2;
+        await this.actor.moveTo(pos, 0);
+    };
+
+    onPointEvtCancel?: (() => void) | undefined = () => {
+        this.actor.element?.style.removeProperty("translate");
+        console.log("style removed");
+        this.actor.moveTo(this.actor.randomInitPos());
+    };
 
 }

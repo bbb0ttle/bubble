@@ -126,9 +126,18 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        this.moving = true;
-
         target = force ? target : this.getSafePos(target);
+
+        if (duration == 0) {
+            requestAnimationFrame(() => {
+                this.element!.style.setProperty("translate", `${target.x}px ${target.y}px`, 'important');
+            })
+
+            this.position = target;
+            return;
+        }
+
+        this.moving = true;
 
         await this.animationCtrl.move(this.position, target, duration);
         this.position = target;

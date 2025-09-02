@@ -28,4 +28,8 @@ export interface BubbleBehavior {
     onLongPress?: (pos: Position, originEvent: Event) => Promise<void>
 
     onShortPress?: (pos: Position, originEvent: Event) => Promise<void>
+
+    onDrag?: (pos: Position, originEvent: Event) => Promise<void>
+
+    onPointEvtCancel?: () => void;
 }

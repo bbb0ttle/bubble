@@ -65,8 +65,14 @@ export class BubbleEventListener {
       if (!this.isLongPress) {
         this.onShortPress(event);
       }
+
+      this.isLongPress = false;
   
       this.startCoords = null;
+
+      if (this.targetBubble.behavior?.onPointEvtCancel) {
+        this.targetBubble.behavior?.onPointEvtCancel();
+      }
     }
   
     private handleCancel(): void {
@@ -75,19 +81,19 @@ export class BubbleEventListener {
         this.pressTimer = null;
       }
       this.startCoords = null;
+
+      if (this.targetBubble.behavior?.onPointEvtCancel) {
+        this.targetBubble.behavior?.onPointEvtCancel();
+      }
     }
   
     private handleMove(event: MouseEvent | TouchEvent): void {
       if (!this.startCoords || !this.pressTimer) return;
   
       const currentCoords = this.getEventCoords(event);
-      const distance = Math.sqrt(
-        Math.pow(currentCoords.x - this.startCoords.x, 2) +
-        Math.pow(currentCoords.y - this.startCoords.y, 2)
-      );
   
-      if (distance > this.threshold) {
-        this.handleCancel();
+      if (this.isLongPress && this.targetBubble.behavior?.onDrag) {
+        this.targetBubble.behavior?.onDrag(currentCoords, event)
       }
     }
   
