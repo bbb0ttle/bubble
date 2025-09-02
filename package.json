@@ -1,12 +1,12 @@
 {
   "name": "@bbb0ttle/bbbubble",
-  "version": "0.2.3-a.48",
+  "version": "0.2.3-a.49",
   "type": "module",
   "author": "bbbottle <b@bbki.ng>",
   "license": "MIT",
   "main": "./dist/bubble.umd.cjs",
   "module": "./dist/bubble.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
