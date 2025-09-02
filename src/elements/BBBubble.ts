@@ -5,8 +5,10 @@ import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/Bubbl
 import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
 import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
-import { BehaviorRegistry } from "../behavior/BehaviorRegistry.ts";
-import { BubbleEventListener } from "../event/BubbleEventListener.ts";
+import {BehaviorRegistry} from "../behavior/BehaviorRegistry.ts";
+import {BubbleEventListener} from "../event/BubbleEventListener.ts";
+import {Queue} from "../utils/queue.ts";
+import type {IMoveOption} from "../types/MoveOption.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -31,7 +33,7 @@ export class BBBubble extends HTMLElement {
         this.element = this.root.querySelector(".bubble");
         this.animationCtrl = new AnimationController(this);
         this.behaviorRegistry = new BehaviorRegistry(this);
-        this.behavior = this.behaviorRegistry.get("default")!;
+        this.behavior = this.behaviorRegistry.get(this.getAttribute("type") ?? "default")!;
         this.lifeCycle = new BubbleLifeCycle(this);
         this.space = this.parentElement as Glass;
         this.eventListener = new BubbleEventListener(this);
@@ -117,15 +119,25 @@ export class BBBubble extends HTMLElement {
 
         await this.behavior.onForgot();
         this.behavior = someNew;
+        await this.lifeCycle.goto(Stage.BORN);
     }
 
     moving = false;
 
-    async moveTo(target: Position, duration: number = 200, force = false) {
-        if (this.moving) {
-            return;
-        }
+    moveParamQueue: Queue<IMoveOption> = new Queue();
 
+    async moveTo(target: Position, duration: number = 200, force = false) {
+        this.moving = true;
+        this.moveParamQueue.enqueue({ target, duration, force });
+
+        while (!this.moveParamQueue.isEmpty()) {
+            const param = this.moveParamQueue.dequeue()!;
+            await this.move(param.target, param.duration, param.force);
+        }
+        this.moving = false;
+    }
+
+    private async move(target: Position, duration: number = 200, force = false) {
         target = force ? target : this.getSafePos(target);
 
         if (duration == 0) {
@@ -137,12 +149,8 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        this.moving = true;
-
         await this.animationCtrl.move(this.position, target, duration);
         this.position = target;
-
-        this.moving = false;
     }
 
     async reposition(duration: number = 100) {
@@ -161,24 +169,32 @@ export class BBBubble extends HTMLElement {
         }
     }
 
+    private scaling = false;
     async scaleTo(targetSize: number, duration: number = this.configuration.defaultAnimationDuration, force = false) {
+        if (this.scaling) {
+            return;
+        }
+        this.scaling = true;
         const safeSize = force ? targetSize : this.getSafeSize(targetSize);
         this.element!.style.transitionDuration = duration + 'ms';
-        // const scale = safeSize / initSize;
-        // await this.animationCtrl.scaleTo(this.size / initSize, scale, duration);
         await new Promise(resolve => {
             this.updateSize(safeSize);
 
             setTimeout(resolve, duration);
         })
         this.size = safeSize;
+        this.scaling = false;
     }
 
-    async bounce(duration = this.configuration.defaultAnimationDuration) {
-        const originSize = this.size;
-        await this.scaleTo(originSize * 1.1, duration * .5).then();
-        await this.scaleTo(originSize * 0.9, duration * .3).then();
-        await this.scaleTo(originSize, duration * .2).then();
+
+    async bounce(size = -1) {
+        const duration = this.configuration.defaultAnimationDuration;
+        if (size < 0) {
+            size = this.size;
+        }
+        await this.scaleTo(size * 1.1, duration * .5);
+        await this.scaleTo(size * 0.9, duration * .3);
+        await this.scaleTo(size , duration * .2);
     }
 
     async fade(targetOpacity: number, duration: number = this.configuration.defaultAnimationDuration) {
@@ -327,17 +343,15 @@ export class BBBubble extends HTMLElement {
     private getSafeX(x: number) {
         const { spacePadding } = this.configuration;
 
-        const leftBound = x - this.size / 2;
-
-        if (leftBound < spacePadding) {
-            return spacePadding + this.size / 2 - this.configuration.initSize / 2;
+        if (x < spacePadding) {
+            return spacePadding;
         }
 
-        const rightBound = x + this.size / 2;
+        const rightBound = x + this.size;
 
         let parentWidth = this.spaceRect?.width || 0;
         if (rightBound > parentWidth - spacePadding) {
-            return parentWidth - spacePadding - this.size / 2 - this.configuration.initSize / 2;
+            return parentWidth - spacePadding - this.size;
         }
 
         return x;
@@ -346,15 +360,14 @@ export class BBBubble extends HTMLElement {
     private getSafeY(y: number) {
         const { spacePadding } = this.configuration;
 
-        const topBound = y - this.size / 2;
-        if (topBound < spacePadding) {
-            return spacePadding + this.size / 2 - this.configuration.initSize / 2;
+        if (y < spacePadding) {
+            return spacePadding;
         }
 
         let parentHeight = this.spaceRect?.height || 0;
-        const bottomBound = y + this.size / 2;
+        const bottomBound = y + this.size;
         if (bottomBound > parentHeight - spacePadding) {
-            return parentHeight - spacePadding - this.size / 2 - this.configuration.initSize / 2;
+            return parentHeight - spacePadding - this.size;
         }
 
         return y;
