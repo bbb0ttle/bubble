@@ -9,7 +9,6 @@ export class BubbleEventListener {
     private element: HTMLElement;
     private pressTimer: number | null = null;
     private duration: number;
-    private threshold: number;
     private isLongPress: boolean = false;
     private startCoords: { x: number; y: number } | null = null;
 
@@ -19,7 +18,6 @@ export class BubbleEventListener {
       this.targetBubble = bubble;
       this.element = bubble.element!;
       this.duration = options.duration || 500;
-      this.threshold = options.threshold || bubble.spaceRect?.width || 100;
       this.attachEventListeners();
     }
   
