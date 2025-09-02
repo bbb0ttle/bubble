@@ -80,14 +80,14 @@ export class Glass extends HTMLElement {
         window.addEventListener('resize', this.setViewportHeight);
         window.addEventListener('orientationchange', this.setViewportHeight);
 
-        this.collectBubblesFromSlot().then(this.wakeBubblesUp.bind(this));
+        this.collectBubblesFromSlot().then(() => {
+            this.wakeBubblesUp.bind(this)
 
-        setInterval(() => {
-            const bubble = this.getRandomBubble();
-            bubble.lifeCycle.nextStage();
-        }, 600);
-
-        console.log("parent connected")
+            setInterval(() => {
+                const bubble = this.getRandomBubble();
+                bubble.lifeCycle.nextStage().then();
+            }, 600);
+        });
     }
 
     public disconnectedCallback() {
