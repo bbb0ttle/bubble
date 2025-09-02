@@ -123,8 +123,6 @@ export class BubbleEventListener {
       if (this.startCoords && this.targetBubble.behavior?.onShortPress) {
         this.targetBubble.behavior?.onShortPress(this.startCoords, event);
       }
-
-      this.targetBubble.behavior?.onClick();
     }
   
     public destroy(): void {
