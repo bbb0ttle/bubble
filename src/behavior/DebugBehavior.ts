@@ -42,10 +42,6 @@ export class DebugBehavior implements BubbleBehavior {
         return Promise.resolve(undefined);
     }
 
-    onGlassReady(): Promise<void> {
-        return Promise.resolve(undefined);
-    }
-
     private _pos: Position = { x: 0, y: 0 };
     async onLongPress(_pos: Position, _evt: Event): Promise<void> {
 

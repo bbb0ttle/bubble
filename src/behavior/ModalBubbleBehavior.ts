@@ -33,10 +33,6 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         this.born = true;
     };
 
-    onGlassReady: () => Promise<void> = async () => {
-        await this.onBorn();
-    };
-
     isReadyToGrow: () => boolean = () => {
         return false;
     };

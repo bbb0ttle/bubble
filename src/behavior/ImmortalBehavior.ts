@@ -54,10 +54,6 @@ export class ImmortalBehavior implements BubbleBehavior {
         return Promise.resolve(undefined);
     }
 
-    onGlassReady(): Promise<void> {
-        return this.onBorn()
-    }
-
     onForgot: () => Promise<void> = async() => {};
 
 }

@@ -8,8 +8,6 @@ export interface BubbleBehavior {
 
     onBorn: () => Promise<void>;
 
-    onGlassReady: () => Promise<void>;
-
     isReadyToGrow: () => boolean;
 
     onGrown: () => Promise<void>;

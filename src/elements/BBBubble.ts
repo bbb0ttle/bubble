@@ -45,9 +45,7 @@ export class BBBubble extends HTMLElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name === "type" && oldValue !== newValue) {
-            this.type = newValue;
-
-            const behavior = this.behaviorRegistry.get(this.type);
+            const behavior = this.behaviorRegistry.get(newValue);
             this.learn(behavior).then();
         }
     }
@@ -64,9 +62,6 @@ export class BBBubble extends HTMLElement {
         this.dispatchEvent(new CustomEvent('bubble-connected', {
             bubbles: true,
         }))
-
-        const behavior = this.behaviorRegistry.get(this.type);
-        this.learn(behavior).then();
     }
 
     disconnectedCallback() {
@@ -109,7 +104,11 @@ export class BBBubble extends HTMLElement {
             bubbles: true,
         }))
 
-        this.behavior.onGlassReady().then();
+        this.learn(this.getBehaviorByType()).then();
+    }
+
+    private getBehaviorByType() {
+        return this.behaviorRegistry.get(this.getAttribute("type") ?? "default");
     }
 
     async learn(someNew: BubbleBehavior | undefined) {
@@ -153,20 +152,12 @@ export class BBBubble extends HTMLElement {
         this.position = target;
     }
 
-    async reposition(duration: number = 100) {
-        await this.moveTo(this.position, duration);
-    }
-
     display(show: boolean) {
         if (!this.element) {
             return;
         }
 
-        if (!show) {
-            this.element.style.display = "none";
-        } else {
-            this.element.style.display = 'grid';
-        }
+        this.element.style.setProperty("display", show ? "grid" : "none");
     }
 
     private scaling = false;
@@ -312,7 +303,6 @@ export class BBBubble extends HTMLElement {
 
     element: HTMLElement | null = null;
 
-    private type: string = "default";
     private opacity: number;
     private birthplaceRect: DOMRect | null = null;
 

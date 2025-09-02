@@ -140,8 +140,4 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         return this._eatCount >= 1
         // return true;
     }
-
-    onGlassReady(): Promise<void> {
-        return Promise.resolve(undefined);
-    }
 }
