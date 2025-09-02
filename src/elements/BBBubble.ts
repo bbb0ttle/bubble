@@ -6,6 +6,7 @@ import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
 import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
 import { BehaviorRegistry } from "../behavior/BehaviorRegistry.ts";
+import { BubbleEventListener } from "../event/BubbleEventListener.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -33,6 +34,7 @@ export class BBBubble extends HTMLElement {
         this.behavior = this.behaviorRegistry.get("default")!;
         this.lifeCycle = new BubbleLifeCycle(this);
         this.space = this.parentElement as Glass;
+        this.eventListener = new BubbleEventListener(this);
     }
 
     static get observedAttributes() {
@@ -56,7 +58,6 @@ export class BBBubble extends HTMLElement {
 
         this.element = this.root.querySelector('.bubble');
         this.animationCtrl = new AnimationController(this.element!);
-        this.addEventListener('click', this.behavior.onClick);
 
         this.dispatchEvent(new CustomEvent('bubble-connected', {
             bubbles: true,
@@ -67,7 +68,7 @@ export class BBBubble extends HTMLElement {
     }
 
     disconnectedCallback() {
-        this.removeEventListener('click', this.behavior.onClick);
+        this.eventListener.destroy();
     }
 
     onParentConnect() {
@@ -114,9 +115,8 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        this.removeEventListener('click', this.behavior.onClick);
+        await this.behavior.onForgot();
         this.behavior = someNew;
-        this.addEventListener('click', this.behavior.onClick);
     }
 
     moving = false;
@@ -271,6 +271,9 @@ export class BBBubble extends HTMLElement {
     // 行为
     behaviorRegistry: BehaviorRegistry;
     behavior: BubbleBehavior;
+
+    // 交互事件
+    eventListener: BubbleEventListener;
 
     // 生命周期
     lifeCycle: BubbleLifeCycle;

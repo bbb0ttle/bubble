@@ -1,7 +1,10 @@
 import type {BBBubble} from "../elements/BBBubble.ts";
+import type { Position } from "../types/Position.ts";
 
 export interface BubbleBehavior {
     actor: BBBubble,
+
+    // life cycle
 
     onBorn: () => Promise<void>;
 
@@ -20,4 +23,9 @@ export interface BubbleBehavior {
     onClick: () => Promise<void>;
 
     onForgot: () => Promise<void>
+
+    // event
+    onLongPress?: (pos: Position, originEvent: Event) => Promise<void>
+
+    onShortPress?: (pos: Position, originEvent: Event) => Promise<void>
 }
