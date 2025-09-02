@@ -16,15 +16,15 @@ export class Glass extends HTMLElement {
 
     public bubbles: BBBubble[] = [];
 
-    private collectBubblesFromSlot() {
+    private async collectBubblesFromSlot() {
         const slot = this.root.querySelector('slot');
-        if (slot) {
-            this.bubbles = Array.from(slot.assignedElements()).filter(el => el instanceof BBBubble) as BBBubble[];
-            this.bubbles.forEach(bubble => {
-                bubble.onParentConnect();
-            })
-        } else {
-            this.bubbles = [];
+        if (!slot) {
+            return [];
+        }
+
+        this.bubbles = Array.from(slot.assignedElements()).filter(el => el instanceof BBBubble) as BBBubble[];
+        for (const bubble of this.bubbles) {
+            await bubble.onParentConnect();
         }
     }
 
@@ -52,7 +52,7 @@ export class Glass extends HTMLElement {
         return this.root.querySelector('.glass') as HTMLElement;
     }
 
-    public async connectedCallback() {
+    public connectedCallback() {
         const styleSheet = new CSSStyleSheet();
 
         styleSheet.replaceSync(`
@@ -77,13 +77,10 @@ export class Glass extends HTMLElement {
 
         this.setViewportHeight();
 
-        this.collectBubblesFromSlot();
-
         window.addEventListener('resize', this.setViewportHeight);
         window.addEventListener('orientationchange', this.setViewportHeight);
 
-
-        this.wakeBubblesUp().then();
+        this.collectBubblesFromSlot().then(this.wakeBubblesUp.bind(this));
 
         setInterval(() => {
             const bubble = this.getRandomBubble();

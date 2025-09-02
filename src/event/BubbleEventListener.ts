@@ -8,11 +8,15 @@ interface LongPressOptions {
 export class BubbleEventListener {
     private element: HTMLElement;
     private pressTimer: number | null = null;
-    private duration: number;
+    private readonly duration: number;
     private isLongPress: boolean = false;
     private startCoords: { x: number; y: number } | null = null;
 
     private targetBubble: BBBubble;
+
+    private handleClick(_evt: MouseEvent) {
+        this.targetBubble.behavior?.onClick.bind(this)
+    };
   
     constructor(bubble: BBBubble, options: LongPressOptions = {}) {
       this.targetBubble = bubble;
@@ -27,7 +31,7 @@ export class BubbleEventListener {
       this.element.addEventListener('mouseup', this.handleEnd.bind(this));
       this.element.addEventListener('mouseleave', this.handleCancel.bind(this));
       this.element.addEventListener('mousemove', this.handleMove.bind(this));
-      this.element.addEventListener('click', this.targetBubble.behavior.onClick.bind(this));
+      this.element.addEventListener('click', this.handleClick.bind(this));
   
       // Touch events
       this.element.addEventListener('touchstart', this.handleStart.bind(this), { passive: false });
@@ -139,7 +143,7 @@ export class BubbleEventListener {
       this.element.removeEventListener('mouseup', this.handleEnd);
       this.element.removeEventListener('mouseleave', this.handleCancel);
       this.element.removeEventListener('mousemove', this.handleMove);
-      this.element.removeEventListener('click', this.targetBubble.behavior.onClick);
+      this.element.removeEventListener('click', this.handleClick);
       
       // Remove touch listeners
       this.element.removeEventListener('touchstart', this.handleStart);

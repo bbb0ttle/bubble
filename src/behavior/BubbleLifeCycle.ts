@@ -35,7 +35,11 @@ export class BubbleLifeCycle {
     async goto(stage: Stage): Promise<void> {
         const action = this.stageActionMap.get(stage);
         if (action) {
-            await action();
+            try {
+                await action();
+            } catch (e) {
+                console.error("lifecycle action error:", e);
+            }
         }
     }
 

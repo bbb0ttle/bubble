@@ -68,7 +68,7 @@ export class BBBubble extends HTMLElement {
         this.eventListener.destroy();
     }
 
-    onParentConnect() {
+    async onParentConnect() {
         const originRect = this.space.glass!.getBoundingClientRect();
 
         this.spaceRect = {
@@ -104,7 +104,7 @@ export class BBBubble extends HTMLElement {
             bubbles: true,
         }))
 
-        this.learn(this.getBehaviorByType()).then();
+        await this.learn(this.getBehaviorByType());
     }
 
     private getBehaviorByType() {
@@ -116,7 +116,7 @@ export class BBBubble extends HTMLElement {
             return;
         }
 
-        await this.behavior.onForgot();
+        await this.behavior?.onForgot();
         this.behavior = someNew;
         await this.lifeCycle.goto(Stage.BORN);
     }
