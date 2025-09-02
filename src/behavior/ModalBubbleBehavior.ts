@@ -58,7 +58,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         
     };
 
-    private _ver: string = "0.2.3-a.43";
+    private _ver: string = "0.2.3-a.45";
 
     private _fullscreen = false;
 

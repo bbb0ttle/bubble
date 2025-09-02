@@ -117,8 +117,13 @@ export class BBBubble extends HTMLElement {
         }
 
         await this.behavior?.onForgot();
+
         this.behavior = someNew;
-        await this.lifeCycle.goto(Stage.BORN);
+
+        // 活动空间就绪，自动出生
+        if (this.space && this.spaceRect) {
+            await this.lifeCycle.goto(Stage.BORN);
+        }
     }
 
     moving = false;
