@@ -30,6 +30,12 @@ export function css(initSize: number): string {
         // box-shadow: inset 0 -8px 16px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
         
         color: #efefef;
+
+        -webkit-tap-highlight-color: transparent;
+    
+        -webkit-touch-callout: none;
+    
+        touch-action: manipulation;
     }
     
     .bubble::after {
