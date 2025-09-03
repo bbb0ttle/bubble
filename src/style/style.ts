@@ -31,6 +31,10 @@ export function css(initSize: number): string {
         
         color: #ccc;
         font-size: 14px;
+
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        touch-action: manipulation;
     }
 `
 }
