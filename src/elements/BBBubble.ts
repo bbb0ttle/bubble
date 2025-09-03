@@ -111,7 +111,7 @@ export class BBBubble extends HTMLElement {
         return this.behaviorRegistry.get(this.getAttribute("type") ?? "default");
     }
 
-    async learn(someNew: BubbleBehavior | undefined) {
+    async learn(someNew: BubbleBehavior | undefined, initStage: Stage = Stage.BORN) {
         if (!someNew) {
             return;
         }
@@ -120,9 +120,8 @@ export class BBBubble extends HTMLElement {
 
         this.behavior = someNew;
 
-        // 活动空间就绪，自动出生
         if (this.space && this.spaceRect) {
-            await this.lifeCycle.goto(Stage.BORN);
+            await this.lifeCycle.goto(initStage);
         }
     }
 
