@@ -129,15 +129,23 @@ export class BBBubble extends HTMLElement {
 
     moveParamQueue: Queue<IMoveOption> = new Queue();
 
-    async moveTo(target: Position, duration: number = 200, force = false) {
-        this.moving = true;
-        this.moveParamQueue.enqueue({ target, duration, force });
+    async moveTo(target: Position, duration: number = 200, force = false, onSuccess?: () => void) {
+        if (this.moving) {
+            this.moveParamQueue.enqueue({ target, duration, force });
+            return;
+        }
 
-        while (!this.moveParamQueue.isEmpty()) {
-            const param = this.moveParamQueue.dequeue()!;
-            await this.move(param.target, param.duration, param.force);
+        this.moving = true;
+        await this.move(target, duration, force);
+        if (onSuccess) {
+            onSuccess();
         }
         this.moving = false;
+
+        if (!this.moveParamQueue.isEmpty()) {
+            const next = this.moveParamQueue.dequeue()!;
+            this.moveTo(next.target, next.duration, next.force, next.onSuccess).then();
+        }
     }
 
     private async move(target: Position, duration: number = 200, force = false) {
@@ -151,6 +159,8 @@ export class BBBubble extends HTMLElement {
             this.position = target;
             return;
         }
+
+        this.element!.style.removeProperty("translate");
 
         await this.animationCtrl.move(this.position, target, duration);
         this.position = target;

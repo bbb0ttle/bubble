@@ -100,7 +100,6 @@ export class BubbleEventListener {
     }
   
     private onLongPress(event: MouseEvent | TouchEvent): void {
-      console.log('Long press detected!');
       event.preventDefault();
       
       const customEvent = new CustomEvent('bubble-pressed', { 
@@ -118,8 +117,7 @@ export class BubbleEventListener {
     }
   
     private onShortPress(event: MouseEvent | TouchEvent): void {
-      console.log('Short press detected!');
-      
+
       const customEvent = new CustomEvent('bubble-touched', { 
         detail: { 
           originalEvent: event,

@@ -4,4 +4,5 @@ export interface IMoveOption {
     target: Position;
     duration: number;
     force: boolean;
+    onSuccess?: () => void;
 }

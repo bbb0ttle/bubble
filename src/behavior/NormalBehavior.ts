@@ -16,34 +16,36 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
         await this.actor.scaleTo(this.actor.randomInitSize());
 
-        await this.actor.moveTo(this.actor.randomInitPos(), 1);
+        await this.actor.moveTo(this.actor.randomInitPos(), 0, false, async () => {
+            this.actor.display(true);
 
-        this.actor.display(true);
+            await this.actor.fade(this.actor.randomInitOpacity()).then();
 
-        this.actor.fade(this.actor.randomInitOpacity()).then();
+            this.eatEachOther().then();
+        });
 
-        await this.eatEachOther();
     };
 
     onGrown: () => Promise<void> = async () => {
-        await this.actor.moveTo(this.actor.idlePos(), this.actor.moveDuration() + 100 * Math.random());
-        this.actor.fade(this.actor.randomInitOpacity()).then();
+        await this.actor.moveTo(this.actor.idlePos(), this.actor.moveDuration() + 100 * Math.random(), false, async () => {
+            this.actor.fade(this.actor.randomInitOpacity()).then();
 
-        await this.eatEachOther();
+            await this.eatEachOther();
+        });
     }
 
     onDeath: () => Promise<void> = async () => {
-        await this.actor.moveTo(this.actor.topPos(), this.actor.moveDuration());
+        await this.actor.moveTo(this.actor.topPos(), this.actor.moveDuration(), false, async () => {
+            await this.actor.fade(0);
 
-        await this.actor.fade(0);
+            await this.actor.scaleTo(this.actor.configuration.initSize);
 
-        await this.actor.scaleTo(this.actor.configuration.initSize);
+            this.actor.display(false);
 
-        await this.actor.moveTo(this.actor.randomInitPos());
-
-        this.actor.display(false);
-
-        this._eatCount = 0;
+            await this.actor.moveTo(this.actor.randomInitPos(), 0, false, async () => {
+                this._eatCount = 0;
+            });
+        });
     };
 
     onTouch: (another: BBBubble) => Promise<void> = async (another: BBBubble) => {
@@ -117,10 +119,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
         another.scaleTo(this.actor.configuration.minSize, moveDuration).then();
         another.fade(0, moveDuration).then();
-        another.moveTo(this.actor.centerPos(), moveDuration).then(() => {
+        another.moveTo(this.actor.centerPos(), moveDuration, false, () => {
             another.display(false);
             another.lifeCycle.goto(Stage.DIED).then();
-        });
+        }).then()
 
         const rate = this.actor.configuration.sizeGrowRate;
 
