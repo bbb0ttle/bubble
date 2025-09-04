@@ -1,5 +1,6 @@
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
 import  {type BBBubble} from "../elements/BBBubble.ts";
+import { Stage } from "./BubbleLifeCycle.ts";
 
 export class ImmortalBehavior implements BubbleBehavior {
     constructor(bubble: BBBubble) {
@@ -36,10 +37,16 @@ export class ImmortalBehavior implements BubbleBehavior {
         await this.actor.bounce();
 
         const siblings = this.actor.getSiblings();
-        for (const sibling of siblings)
-        {
-            await sibling.lifeCycle.nextStage();
+        for (const s of siblings) {
+            await this.delay(Math.random() * 100);
+            s.lifeCycle.goto(Stage.BORN)
         }
+    }
+
+    private delay(ms: number) {
+        return new Promise((r) => {
+            setTimeout(r, ms)
+        })
     }
 
     onDeath(): Promise<void> {
