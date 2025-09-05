@@ -29,7 +29,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         this._pos = { x: rect.width / 2 - this._size / 2, y: rect.height - 100 };
 
-        await this.actor.moveTo(this._pos);
+        await this.actor.goto(this._pos).done;
 
         this.born = true;
     };
@@ -79,7 +79,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         const targetSize = Math.min(space.height, space.width) - padding * 2;
 
-        this.actor.moveTo({ x: xOffset + padding, y: yOffset + padding }, duration * .2, true);
+        this.actor.goto({ x: xOffset + padding, y: yOffset + padding }, duration * .2, true).done;
   
         await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
         this.actor.innerHTML = `${pkgJons.name} ${pkgJons.version}</br>Made by ${pkgJons.author}`;
@@ -106,8 +106,8 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         this.actor.scaleTo(size, duration).then();
         this.actor.innerHTML = "";
 
-        await this.actor.moveTo(targetPos, duration, true);
-        await this.actor.moveTo(this._pos, duration * .2, true).then();
+        await this.actor.goto(targetPos, duration, true).done;
+        await this.actor.goto(this._pos, duration * .2, true).done;
 
 
         this.actor.element!.style.zIndex = "1";

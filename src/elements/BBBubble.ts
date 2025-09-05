@@ -8,7 +8,7 @@ import type {Glass} from "./Glass.ts";
 import {BehaviorRegistry} from "../behavior/BehaviorRegistry.ts";
 import {BubbleEventListener} from "../event/BubbleEventListener.ts";
 import {Queue} from "../utils/queue.ts";
-import type {IMoveOption} from "../types/MoveOption.ts";
+import {MovePromise, type IMoveOption} from "../types/MoveOption.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -125,10 +125,39 @@ export class BBBubble extends HTMLElement {
         }
     }
 
+    gotoParamQueue: Queue<MovePromise> = new Queue();
+
+    goto(target: Position, duration: number = this.configuration.defaultAnimationDuration, force = false, mPromise: MovePromise | null = null) : MovePromise {
+        if (mPromise == null) {
+            mPromise = new MovePromise(target, duration, force);
+        }
+
+        if (this.moving) {
+            this.gotoParamQueue.enqueue(mPromise);
+            return mPromise;
+        }
+
+        this.moving = true;
+        this.move(target, duration, force).then(() => {
+            mPromise.resolve();
+            this.moving = false;
+        })
+
+        if (!this.gotoParamQueue.isEmpty()) {
+            const next = this.gotoParamQueue.dequeue()!;
+            this.goto(next.target, next.duration, next.force, next);
+        }
+
+        return mPromise;
+    }
+
     moving = false;
 
     moveParamQueue: Queue<IMoveOption> = new Queue();
 
+    /**
+     * @deprecated The method should not be used
+     */
     async moveTo(target: Position, duration: number = 200, force = false, onSuccess?: () => void) {
         if (this.moving) {
             this.moveParamQueue.enqueue({ target, duration, force });
