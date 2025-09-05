@@ -1,7 +1,6 @@
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
 import  {type BBBubble} from "../elements/BBBubble.ts";
 import { Stage } from "./BubbleLifeCycle.ts";
-import { MoveOpt } from "../types/MoveOption.ts";
 
 export class ImmortalBehavior implements BubbleBehavior {
     constructor(bubble: BBBubble) {
@@ -30,9 +29,7 @@ export class ImmortalBehavior implements BubbleBehavior {
         this.actor.display(true)
         this.actor.fade(this.actor.randomInitOpacity()).then();
 
-        const moveOpt = MoveOpt.create({ x: 50, y: 50 });
-        await this.actor.moveTo(moveOpt)
-        await moveOpt.done;
+        await this.actor.moveTo({ x: 50, y: 50 })
 
         this.born = true;
     }
