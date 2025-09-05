@@ -12,11 +12,6 @@ export class BubbleLifeCycle {
         this.stage = stage;
     }
 
-    get IsTransitioning(): boolean {
-        return this._transitioning;
-    }
-
-    private _transitioning = false;
     async nextStage(): Promise<void> {
         if (this._transitioning) {
             return;
@@ -32,7 +27,11 @@ export class BubbleLifeCycle {
         this._transitioning = false;
     }
 
-    async goto(stage: Stage): Promise<void> {
+    isAt(stage: Stage): boolean {
+        return this.stage === stage;
+    }
+
+    private async goto(stage: Stage): Promise<void> {
         const action = this.stageActionMap.get(stage);
         if (action) {
             try {
@@ -43,13 +42,13 @@ export class BubbleLifeCycle {
         }
     }
 
-    isAt(stage: Stage): boolean {
-        return this.stage === stage;
-    }
-
-
     private async born() {
-        await this.bubble.behavior.onBorn();
+        try {
+            await this.bubble.behavior.onBorn();
+        } catch (e) {
+            console.error("onBorn error:", e);
+        }
+
         this.stage = Stage.BORN;
         this.bubble.dispatchEvent(new CustomEvent(Stage.BORN, { bubbles: true, composed: true }));
     }
@@ -58,17 +57,27 @@ export class BubbleLifeCycle {
         if (!this.bubble.behavior.isReadyToDie()) {
             return;
         }
-        await this.bubble.behavior.onDeath();
+        try {
+            await this.bubble.behavior.onDeath();
+        } catch (e) {
+            console.error("onDeath error:", e);
+        }
         this.stage = Stage.DIED;
         this.bubble.dispatchEvent(new CustomEvent(Stage.DIED, { bubbles: true, composed: true }));
     }
+
+    private _transitioning = false;
 
     private async grown() {
         if (!this.bubble.behavior.isReadyToGrow()) {
             return;
         }
 
-        await this.bubble.behavior.onGrown();
+        try {
+            await this.bubble.behavior.onGrown();
+        } catch (e) {
+            console.error("onGrown error:", e);
+        }
         this.stage = Stage.GROWN;
         this.bubble.dispatchEvent(new CustomEvent(Stage.GROWN, { bubbles: true, composed: true }));
     }

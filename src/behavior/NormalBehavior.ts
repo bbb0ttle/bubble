@@ -1,6 +1,5 @@
 import {type BBBubble} from "../elements/BBBubble.ts";
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
-import {Stage} from "./BubbleLifeCycle.ts";
 
 export class NormalBubbleBehavior implements BubbleBehavior {
     constructor(bubble: BBBubble) {
@@ -53,7 +52,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
     onClick: () => Promise<void> = async () => {
         await this.actor.bounce();
-        await this.actor.lifeCycle.goto(Stage.DIED);
+        await this.actor.lifeCycle.nextStage();
     };
 
     async eatEachOther() {
@@ -91,10 +90,6 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
-        if (this.actor.lifeCycle.IsTransitioning || another.lifeCycle.IsTransitioning) {
-            return false;
-        }
-
         if (another.moving) {
             return false;
         }
@@ -115,9 +110,9 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
         another.scaleTo(this.actor.configuration.minSize, moveDuration).then();
         another.fade(0, moveDuration).then();
-        another.goto(this.actor.centerPos(), moveDuration).done.then(() => {
+        another.goto(this.actor.centerPos(), moveDuration).done.then(async () => {
             another.display(false);
-            another.lifeCycle.goto(Stage.DIED).then();
+            await this.actor.lifeCycle.nextStage();
         });
 
         const rate = this.actor.configuration.sizeGrowRate;
