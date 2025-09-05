@@ -1,5 +1,7 @@
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
 import  {type BBBubble} from "../elements/BBBubble.ts";
+import { Stage } from "./BubbleLifeCycle.ts";
+import { MoveOpt } from "../types/MoveOption.ts";
 
 export class ImmortalBehavior implements BubbleBehavior {
     constructor(bubble: BBBubble) {
@@ -27,7 +29,10 @@ export class ImmortalBehavior implements BubbleBehavior {
         await this.actor.scaleTo(80);
         this.actor.display(true)
         this.actor.fade(this.actor.randomInitOpacity()).then();
-        await this.actor.moveTo({ x: 50, y: 50 })
+
+        const moveOpt = MoveOpt.create({ x: 50, y: 50 });
+        await this.actor.moveTo(moveOpt)
+        await moveOpt.done;
 
         this.born = true;
     }
@@ -37,8 +42,17 @@ export class ImmortalBehavior implements BubbleBehavior {
 
         const siblings = this.actor.getSiblings();
         for (const s of siblings) {
-            await this.delay(Math.random() * 200);
-            s.lifeCycle.nextStage().then();
+            await this.delay(Math.random() * 100);
+            if (!s.space || !s.spaceRect) {
+                continue;
+            }
+
+            if (s.lifeCycle.isAt(Stage.DIED)) {
+                s.lifeCycle.goto(Stage.BORN)
+                continue;
+            }
+
+            s.lifeCycle.nextStage();
         }
     }
 

@@ -15,6 +15,10 @@ export class BubbleEventListener {
     private targetBubble: BBBubble;
 
     private handleClick(_evt: MouseEvent) {
+      if (!this.targetBubble) {
+        return;
+      }
+
         this.targetBubble.behavior?.onClick();
     };
   
