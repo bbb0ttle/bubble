@@ -8,39 +8,34 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
     actor: BBBubble;
 
-    private _eatCount = 0;
-
     onBorn: () => Promise<void> = async () => {
         this.actor.display(false);
 
         await this.actor.scaleTo(this.actor.randomInitSize());
 
-        await this.actor.goto(this.actor.randomInitPos(), 0).done;
+        await this.actor.goto(this.actor.randomInitPos(), 0);
 
         this.actor.display(true);
 
         await this.actor.fade(this.actor.randomInitOpacity());
 
-        await this.eatEachOther().then();
-
+        await this.eatOthers();
     };
 
     onGrown: () => Promise<void> = async () => {
-        this.actor.goto(this.actor.idlePos(), this.actor.moveDuration() + 100 * Math.random()).done;
-        await this.actor.fade(this.actor.randomInitOpacity()).then();
-        await this.eatEachOther();
+        await this.actor.goto(this.actor.idlePos(), this.actor.moveDuration() + 100 * Math.random());
+        await this.eatOthers();
     }
 
     onDeath: () => Promise<void> = async () => {
-        await this.actor.goto(this.actor.topPos(), this.actor.moveDuration()).done;
+        await this.actor.goto(this.actor.topPos(), this.actor.moveDuration());
         await this.actor.fade(0);
 
         await this.actor.scaleTo(this.actor.configuration.initSize);
 
         this.actor.display(false);
 
-        await this.actor.goto(this.actor.randomInitPos(), 0).done;
-        this._eatCount = 0;
+        await this.actor.goto(this.actor.randomInitPos(), 0);
     };
 
     onTouch: (another: BBBubble) => Promise<void> = async (another: BBBubble) => {
@@ -55,42 +50,29 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         await this.actor.lifeCycle.nextStage();
     };
 
-    async eatEachOther() {
-        const others = this.actor.getSiblings();
-        if (!others.length) {
-            return;
-        }
-
-        for (const another of others) {
-            const anotherBubbleBehavior = another.behavior;
-            if (!(anotherBubbleBehavior instanceof NormalBubbleBehavior)) {
-                continue;
-            }
-
-            await (another.behavior as NormalBubbleBehavior).eatOthers();
-        }
-    }
-
     private async eatOthers() {
         const others = this.actor.getSiblings();
         if (!others.length) {
             return;
         }
 
-        for (const another of others) {
-            const eatResult = await this.tryEat(another);
-            if (eatResult) {
-                this._eatCount++;
-            }
-        }
+        await Promise.all(others.map(this.tryEat.bind(this)));
     }
 
     private async tryEat(another: BBBubble) {
-        if (!this.actor.isOverlapWith(another) || another == this.actor) {
+        if (!(this.actor.behavior instanceof NormalBubbleBehavior)) {
             return false;
         }
 
-        if (another.moving) {
+        if (another == this.actor) {
+            return false;
+        }
+
+        if (!this.actor.isOverlapWith(another)) {
+            return false;
+        }
+
+        if (this.actor.opacity <= 0 || another.opacity <= 0) {
             return false;
         }
 
@@ -106,19 +88,17 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     }
 
     private async eat(another: BBBubble) {
-        const moveDuration = 50 + 50 * Math.random();
-
-        another.scaleTo(this.actor.configuration.minSize, moveDuration).then();
-        another.fade(0, moveDuration).then();
-        another.goto(this.actor.centerPos(), moveDuration).done.then(async () => {
-            another.display(false);
-            await this.actor.lifeCycle.nextStage();
-        });
-
         const rate = this.actor.configuration.sizeGrowRate;
 
-        await this.actor.scaleTo(this.actor.size + another.size * rate);
-        await this.actor.goto(this.actor.idlePos(), this.actor.moveDuration()).done;
+        await Promise.all([
+            another.lifeCycle.nextStage(true),
+            this.actor.scaleTo(this.actor.size + another.size * rate)
+        ]);
+
+        await Promise.all([
+            this.actor.goto(this.actor.position, this.actor.moveDuration()),
+            this.actor.lifeCycle.nextStage()
+        ])
 
         return true;
     }
@@ -131,5 +111,16 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
     isReadyToGrow(): boolean {
         return true;
+    }
+
+    onLearned(): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    async onSick(): Promise<void> {
+        await this.actor.fade(0);
+        await this.actor.scaleTo(this.actor.configuration.initSize);
+        this.actor.display(false);
+        await this.actor.goto(this.actor.randomInitPos(), 0);
     }
 }

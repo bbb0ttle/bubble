@@ -4,6 +4,7 @@ export enum Stage {
     BORN = 'bubble-born',
     GROWN = 'bubble-grown',
     DIED = 'bubble-died',
+    SICK = 'bubble-sick',
 }
 
 export class BubbleLifeCycle {
@@ -12,12 +13,27 @@ export class BubbleLifeCycle {
         this.stage = stage;
     }
 
-    async nextStage(): Promise<void> {
+    isAtTheSameStageWith(other: BubbleLifeCycle): boolean {
+        return this.stage === other.stage;
+    }
+
+    async nextStage(isSick: boolean = false): Promise<void> {
         if (this._transitioning) {
             return;
         }
 
         this._transitioning = true;
+
+        if (isSick) {
+            try {
+                await this.bubble.behavior.onSick();
+            } catch (error) {
+                console.error("onSick error:", error);
+            }
+
+            this._transitioning = false;
+            return;
+        }
 
         const next = this.stageCycleMap.get(this.stage);
         if (next) {
@@ -54,9 +70,6 @@ export class BubbleLifeCycle {
     }
 
     private async died() {
-        if (!this.bubble.behavior.isReadyToDie()) {
-            return;
-        }
         try {
             await this.bubble.behavior.onDeath();
         } catch (e) {
@@ -69,10 +82,6 @@ export class BubbleLifeCycle {
     private _transitioning = false;
 
     private async grown() {
-        if (!this.bubble.behavior.isReadyToGrow()) {
-            return;
-        }
-
         try {
             await this.bubble.behavior.onGrown();
         } catch (e) {

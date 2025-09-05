@@ -3,12 +3,12 @@ import type {Position} from "../types/Position.ts";
 import {AnimationController} from "../animation/AnimationController.ts";
 import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/BubbleConfiguration.ts";
 import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
-import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
+import {BubbleLifeCycle} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
 import {BehaviorRegistry} from "../behavior/BehaviorRegistry.ts";
 import {BubbleEventListener} from "../event/BubbleEventListener.ts";
 import {Queue} from "../utils/queue.ts";
-import {MovePromise, type IMoveOption} from "../types/MoveOption.ts";
+import {MovePromise} from "../types/MoveOption.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -111,7 +111,7 @@ export class BBBubble extends HTMLElement {
         return this.behaviorRegistry.get(this.getAttribute("type") ?? "default");
     }
 
-    async learn(someNew: BubbleBehavior | undefined, initStage: Stage = Stage.BORN) {
+    async learn(someNew: BubbleBehavior | undefined) {
         if (!someNew) {
             return;
         }
@@ -120,61 +120,33 @@ export class BBBubble extends HTMLElement {
 
         this.behavior = someNew;
 
-        if (this.space && this.spaceRect) {
-            await this.lifeCycle.goto(initStage);
-        }
+        await someNew.onLearned();
     }
 
     gotoParamQueue: Queue<MovePromise> = new Queue();
 
-    goto(target: Position, duration: number = this.configuration.defaultAnimationDuration, force = false, mPromise: MovePromise | null = null) : MovePromise {
-        if (mPromise == null) {
-            mPromise = new MovePromise(target, duration, force);
-        }
-
-        if (this.moving) {
-            this.gotoParamQueue.enqueue(mPromise);
-            return mPromise;
-        }
-
-        this.moving = true;
-        this.move(target, duration, force).then(() => {
-            mPromise.resolve();
-            this.moving = false;
-        })
-
-        if (!this.gotoParamQueue.isEmpty()) {
-            const next = this.gotoParamQueue.dequeue()!;
-            this.goto(next.target, next.duration, next.force, next);
-        }
-
-        return mPromise;
+    async goto(target: Position, duration: number = 200, force = false) {
+        const movePromise = new MovePromise(target, duration, force);
+        await this.addMovePromise(movePromise);
+        await movePromise.done;
     }
 
-    moving = false;
+    private async addMovePromise(movePromise: MovePromise) {
+        this.gotoParamQueue.enqueue(movePromise);
 
-    moveParamQueue: Queue<IMoveOption> = new Queue();
+        while (!this.gotoParamQueue.isEmpty()) {
+          await this.consumeFromQueue()
+        }
+    }
 
-    /**
-     * @deprecated The method should not be used
-     */
-    async moveTo(target: Position, duration: number = 200, force = false, onSuccess?: () => void) {
-        if (this.moving) {
-            this.moveParamQueue.enqueue({ target, duration, force });
+    private async consumeFromQueue() {
+        if (this.gotoParamQueue.isEmpty()) {
             return;
         }
 
-        this.moving = true;
-        await this.move(target, duration, force);
-        if (onSuccess) {
-            onSuccess();
-        }
-        this.moving = false;
-
-        if (!this.moveParamQueue.isEmpty()) {
-            const next = this.moveParamQueue.dequeue()!;
-            this.moveTo(next.target, next.duration, next.force, next.onSuccess).then();
-        }
+        const next = this.gotoParamQueue.dequeue()!;
+        await this.move(next.target, next.duration, next.force)
+        next.resolve()
     }
 
     private async move(target: Position, duration: number = 200, force = false) {
@@ -220,7 +192,6 @@ export class BBBubble extends HTMLElement {
         this.scaling = false;
     }
 
-
     async bounce(size = -1) {
         const duration = this.configuration.defaultAnimationDuration;
         if (size < 0) {
@@ -245,14 +216,6 @@ export class BBBubble extends HTMLElement {
     }
 
     isOverlapWith(another: BBBubble): boolean {
-        if (this.lifeCycle.isAt(Stage.DIED)) {
-            return false;
-        }
-
-        if (another.lifeCycle.isAt(Stage.DIED)) {
-            return false;
-        }
-
         const distBetweenBubbles = Math.sqrt(
             Math.pow(this.position.x - another.position.x, 2) + Math.pow(this.position.y - another.position.y, 2));
 
@@ -346,7 +309,7 @@ export class BBBubble extends HTMLElement {
 
     element: HTMLElement | null = null;
 
-    private opacity: number;
+    opacity: number;
     private birthplaceRect: DOMRect | null = null;
 
     private getSafeSize(size: number): number {

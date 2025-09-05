@@ -22,7 +22,7 @@ export class DebugBehavior implements BubbleBehavior {
     async onBorn(): Promise<void> {
         await this.actor.scaleTo(200);
         this._pos = {x: 100, y: 200};
-        await this.actor.moveTo(this._pos);
+        await this.actor.goto(this._pos);
         await this.actor.fade(1);
     }
 
@@ -52,13 +52,21 @@ export class DebugBehavior implements BubbleBehavior {
         this._pos = pos;
         pos.x -= this.actor.size / 2;
         pos.y -= this.actor.size / 2;
-        await this.actor.moveTo(pos, 0);
+        await this.actor.goto(pos, 0);
     };
 
     onPointEvtCancel?: (() => void) | undefined = () => {
         this.actor.element?.style.removeProperty("translate");
         console.log("style removed");
-        this.actor.moveTo(this._pos).then();
+        this.actor.goto(this._pos).then();
     };
+
+    onLearned(): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    onSick(): Promise<void> {
+        return Promise.resolve(undefined);
+    }
 
 }

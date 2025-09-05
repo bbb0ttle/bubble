@@ -1,4 +1,4 @@
-import type { BBBubble } from "../elements/BBBubble";
+import  { type BBBubble } from "../elements/BBBubble";
 import type { Position } from "../types/Position";
 import type { BubbleBehavior } from "./BubbleBehavior";
 import pkgJons from "../../package.json" assert { type: "json" };
@@ -29,7 +29,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         this._pos = { x: rect.width / 2 - this._size / 2, y: rect.height - 100 };
 
-        await this.actor.goto(this._pos).done;
+        await this.actor.goto(this._pos);
 
         this.born = true;
     };
@@ -79,7 +79,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         const targetSize = Math.min(space.height, space.width) - padding * 2;
 
-        this.actor.goto({ x: xOffset + padding, y: yOffset + padding }, duration * .2, true).done;
+        this.actor.goto({ x: xOffset + padding, y: yOffset + padding }, duration * .2, true);
   
         await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
         this.actor.innerHTML = `${pkgJons.name} ${pkgJons.version}</br>Made by ${pkgJons.author}`;
@@ -106,11 +106,19 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         this.actor.scaleTo(size, duration).then();
         this.actor.innerHTML = "";
 
-        await this.actor.goto(targetPos, duration, true).done;
-        await this.actor.goto(this._pos, duration * .2, true).done;
+        await this.actor.goto(targetPos, duration, true);
+        await this.actor.goto(this._pos, duration * .2, true);
 
 
         this.actor.element!.style.zIndex = "1";
         this.actor.element!.style.background= "none";
       }
+
+    onLearned(): Promise<void> {
+        return Promise.resolve(undefined);
+    }
+
+    onSick(): Promise<void> {
+        return Promise.resolve(undefined);
+    }
 }

@@ -5,14 +5,13 @@ export interface BubbleBehavior {
     actor: BBBubble,
 
     // life cycle
+    onLearned: () => Promise<void>;
 
     onBorn: () => Promise<void>;
 
-    isReadyToGrow: () => boolean;
-
     onGrown: () => Promise<void>;
 
-    isReadyToDie: () => boolean;
+    onSick: () => Promise<void>;
 
     onDeath: () => Promise<void>;
 

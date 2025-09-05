@@ -1,6 +1,5 @@
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
 import  {type BBBubble} from "../elements/BBBubble.ts";
-import { Stage } from "./BubbleLifeCycle.ts";
 
 export class ImmortalBehavior implements BubbleBehavior {
     constructor(bubble: BBBubble) {
@@ -29,7 +28,7 @@ export class ImmortalBehavior implements BubbleBehavior {
         this.actor.display(true)
         this.actor.fade(this.actor.randomInitOpacity()).then();
 
-        await this.actor.goto({ x: 50, y: 50 }).done;
+        await this.actor.goto({ x: 50, y: 50 });
 
         this.born = true;
     }
@@ -44,12 +43,7 @@ export class ImmortalBehavior implements BubbleBehavior {
                 continue;
             }
 
-            if (s.lifeCycle.isAt(Stage.DIED)) {
-                s.lifeCycle.goto(Stage.BORN)
-                continue;
-            }
-
-            s.lifeCycle.nextStage();
+            await s.lifeCycle.nextStage();
         }
     }
 
@@ -72,5 +66,13 @@ export class ImmortalBehavior implements BubbleBehavior {
     }
 
     onForgot: () => Promise<void> = async() => {};
+
+    onLearned(): Promise<void> {
+        return this.onBorn();
+    }
+
+    onSick(): Promise<void> {
+        return Promise.resolve(undefined);
+    }
 
 }
