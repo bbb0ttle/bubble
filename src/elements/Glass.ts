@@ -62,6 +62,12 @@ export class Glass extends HTMLElement {
         return this.root.querySelector('.glass') as HTMLElement;
     }
 
+    private async delay(ms: number) {
+        return new Promise((r) => {
+            setTimeout(r, ms)
+        })
+    }
+
     public connectedCallback() {
         const styleSheet = new CSSStyleSheet();
 
@@ -91,12 +97,20 @@ export class Glass extends HTMLElement {
         window.addEventListener('orientationchange', this.setViewportHeight);
 
         this.collectBubblesFromSlot().then(() => {
-            this.wakeBubblesUp.bind(this)
+            this.wakeBubblesUp().then();
 
-            setInterval(() => {
+            setInterval(async () => {
+                await this.delay(500 * Math.random());
+
                 const bubble = this.getRandomBubble();
+
                 bubble.lifeCycle.nextStage().then();
-            }, 600);
+
+                const prob = Math.random();
+                if (prob < 0.2) {
+                    await this.wakeBubblesUp()
+                }
+            }, 1000);
         });
     }
 

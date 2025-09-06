@@ -51,7 +51,7 @@ export class BaseBubbleConfiguration implements BubbleConfiguration {
 
     sizeGrowRate: number = 0.2;
 
-    maxMoveDuration: number = 600;
+    maxMoveDuration: number = 800;
 
-    minMoveDuration: number = 200;
+    minMoveDuration: number = 300;
 }

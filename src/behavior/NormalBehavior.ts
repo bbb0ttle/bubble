@@ -40,13 +40,8 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         this.actor.display(false);
 
         await this.actor.goto(this.actor.randomInitPos(), 0);
-    };
 
-    onTouch: (another: BBBubble) => Promise<void> = async (another: BBBubble) => {
-        // eat the smaller one
-        if (this.actor === another) {
-            return;
-        }
+        this._eatCount = 0;
     };
 
     onClick: () => Promise<void> = async () => {
@@ -95,6 +90,8 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         }
     }
 
+    private _eatCount = 0;
+
     private async eat(another: BBBubble) {
         const rate = this.actor.configuration.sizeGrowRate;
 
@@ -112,22 +109,17 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         ]);
 
         await Promise.all([
-            this.actor.goto(this.actor.position, this.actor.moveDuration()),
-            this.actor.lifeCycle.nextStage()
+            this.actor.goto(this.actor.idlePos(), this.actor.moveDuration()),
+            Math.random() < 0.1
+                ? this.actor.lifeCycle.nextStage()
+                : Promise.resolve()
         ])
 
+        this._eatCount++
         return true;
     }
 
     onForgot: () => Promise<void> = async() => {};
-
-    isReadyToDie(): boolean {
-        return true;
-    }
-
-    isReadyToGrow(): boolean {
-        return true;
-    }
 
     onLearned(): Promise<void> {
         return Promise.resolve(undefined);

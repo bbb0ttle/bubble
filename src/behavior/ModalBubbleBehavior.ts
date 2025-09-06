@@ -27,9 +27,9 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         const rect = this.actor.spaceRect!;
 
-        this._pos = { x: rect.width / 2 - this._size / 2, y: rect.height - 100 };
+        this._pos = { x: rect.width - 80, y: rect.height - 80 };
 
-        await this.actor.goto(this._pos);
+        await this.actor.goto(this._pos, 200, true);
 
         this.born = true;
     };
@@ -79,7 +79,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         this.actor.goto(targetPos, duration * .2, true).then();
 
         await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
-        this.actor.innerHTML = `${pkgJons.name} ${pkgJons.version}</br>Made by ${pkgJons.author}`;
+        this.actor.innerHTML = `bbbubble ${pkgJons.version}</br>made by ${pkgJons.author}`;
         await this.actor.scaleTo(targetSize * 0.9, .3 * duration, true)
         await this.actor.scaleTo(targetSize, .2 * duration, true);
 

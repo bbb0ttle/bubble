@@ -28,6 +28,7 @@ export {
 };
 
 export type { BubbleBehavior } from "./behavior/BubbleBehavior.ts";
+export { ModalBubbleBehavior } from "./behavior/ModalBubbleBehavior.ts";
 export type { Position } from "./types/Position.ts";
 export { Stage } from "./behavior/BubbleLifeCycle.ts";
 
