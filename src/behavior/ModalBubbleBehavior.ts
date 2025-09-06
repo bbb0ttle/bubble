@@ -66,26 +66,24 @@ export class ModalBubbleBehavior implements BubbleBehavior{
             return;
         }
 
-        const whRatio = space.width / space.height;
 
-        const offset = Math.abs(space.width - space.height) / 2;
-
-        const xOffset = whRatio > 1 ? offset : 0;
-        const yOffset = whRatio > 1 ? 0 : offset;
-  
-  
         const duration = 200;
-        const padding = 10;
+        const max = 300;
 
-        const targetSize = Math.min(space.height, space.width) - padding * 2;
+        const targetSize = Math.min(space.height, space.width, max);
+        const targetPos = {
+            x: (space.width - targetSize) / 2,
+            y: (space.height - targetSize) / 2
+        }
 
-        this.actor.goto({ x: xOffset + padding, y: yOffset + padding }, duration * .2, true);
-  
+        this.actor.goto(targetPos, duration * .2, true).then();
+
         await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
         this.actor.innerHTML = `${pkgJons.name} ${pkgJons.version}</br>Made by ${pkgJons.author}`;
         await this.actor.scaleTo(targetSize * 0.9, .3 * duration, true)
         await this.actor.scaleTo(targetSize, .2 * duration, true);
-  
+
+
         this.actor.element!.style.zIndex = "2";
         this.actor.element!.style.background= "#fff";
 
@@ -98,15 +96,21 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         const size = this._size;
 
-        const targetPos = {
+        const posStop0 = {
             x: this._pos.x,
-            y: this._pos.y + 5
+            y: this._pos.y + 6
         }
 
-        this.actor.scaleTo(size, duration).then();
+        const posStop1 = {
+            x: this._pos.x,
+            y: this._pos.y - 4
+        }
+
+        this.actor.scaleTo(size, duration * .2).then();
         this.actor.innerHTML = "";
 
-        await this.actor.goto(targetPos, duration, true);
+        await this.actor.goto(posStop0, duration * .5, true);
+        await this.actor.goto(posStop1, duration * .3, true);
         await this.actor.goto(this._pos, duration * .2, true);
 
 
