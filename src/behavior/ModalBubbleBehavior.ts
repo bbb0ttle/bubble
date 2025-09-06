@@ -77,12 +77,12 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         }
 
         const posStop0 = {
-            x: targetPos.x,
+            x: targetPos.x - 6,
             y: targetPos.y - 6
         }
 
         const posStop1 = {
-            x: targetPos.x,
+            x: targetPos.x + 4,
             y: targetPos.y + 4
         }
 
@@ -120,12 +120,12 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         const size = this._size;
 
         const posStop0 = {
-            x: this._pos.x,
+            x: this._pos.x + 6,
             y: this._pos.y + 6
         }
 
         const posStop1 = {
-            x: this._pos.x,
+            x: this._pos.x - 4,
             y: this._pos.y - 4
         }
 
