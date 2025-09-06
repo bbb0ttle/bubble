@@ -105,7 +105,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
             sizeBounce()
         ]);
 
-        this.actor.innerHTML = `bbbubble ${pkgJons.version}</br>made by ${pkgJons.author}`;
+        this.actor.innerHTML = `bbbubble ${pkgJons.version}</br>made for soda`;
 
         this.actor.element!.style.zIndex = "2";
         this.actor.element!.style.background= "#fff";
