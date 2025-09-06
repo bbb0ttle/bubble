@@ -4,7 +4,6 @@ export enum Stage {
     BORN = 'bubble-born',
     GROWN = 'bubble-grown',
     DIED = 'bubble-died',
-    SICK = 'bubble-sick',
 }
 
 export class BubbleLifeCycle {
@@ -18,12 +17,6 @@ export class BubbleLifeCycle {
     }
 
     async nextStage(isSick: boolean = false): Promise<void> {
-        if (this._transitioning) {
-            return;
-        }
-
-        this._transitioning = true;
-
         if (isSick) {
             try {
                 await this.bubble.behavior.onSick();
@@ -31,16 +24,24 @@ export class BubbleLifeCycle {
                 console.error("onSick error:", error);
             }
 
-            this._transitioning = false;
             return;
         }
 
+        if (this._transitioning) { return; }
+        this._transitioning = true;
         const next = this.stageCycleMap.get(this.stage);
         if (next) {
             await this.goto(next);
         }
-
         this._transitioning = false;
+
+        if (this.bubble.behavior.after) {
+            try {
+                await this.bubble.behavior.after(this.stage);
+            } catch (error) {
+                console.error("after stage error:", error);
+            }
+        }
     }
 
     isAt(stage: Stage): boolean {
@@ -77,6 +78,10 @@ export class BubbleLifeCycle {
         }
         this.stage = Stage.DIED;
         this.bubble.dispatchEvent(new CustomEvent(Stage.DIED, { bubbles: true, composed: true }));
+    }
+
+    public get stable() {
+        return !this._transitioning;
     }
 
     private _transitioning = false;

@@ -1,5 +1,6 @@
 import {type BBBubble} from "../elements/BBBubble.ts";
 import type {BubbleBehavior} from "./BubbleBehavior.ts";
+import {Stage} from "./BubbleLifeCycle.ts";
 
 export class NormalBubbleBehavior implements BubbleBehavior {
     constructor(bubble: BBBubble) {
@@ -7,6 +8,12 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     }
 
     actor: BBBubble;
+
+    after = async (s: Stage) => {
+        if (s === Stage.GROWN || s === Stage.BORN) {
+            await this.eatOthers();
+        }
+    }
 
     onBorn: () => Promise<void> = async () => {
         this.actor.display(false);
@@ -18,13 +25,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         this.actor.display(true);
 
         await this.actor.fade(this.actor.randomInitOpacity());
-
-        await this.eatOthers();
     };
 
     onGrown: () => Promise<void> = async () => {
         await this.actor.goto(this.actor.idlePos(), this.actor.moveDuration() + 100 * Math.random());
-        await this.eatOthers();
     }
 
     onDeath: () => Promise<void> = async () => {
@@ -76,21 +80,33 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
+        if (!another.lifeCycle.stable) {
+            return false;
+        }
+
         if (!(another.behavior instanceof NormalBubbleBehavior)) {
             return false;
         }
 
-        if (this.actor.size < another.size) {
-            return another.behavior.eat(this.actor);
-        } else {
+        if (this.actor.size > another.size) {
             return this.eat(another);
+        } else {
+            return another.behavior.eat(this.actor);
         }
     }
 
     private async eat(another: BBBubble) {
         const rate = this.actor.configuration.sizeGrowRate;
 
+        if (!another.lifeCycle.stable) {
+            return;
+        }
+
         await Promise.all([
+            another.goto({
+                x: this.actor.position.x + (this.actor.size - another.size) / 2,
+                y: this.actor.position.y + (this.actor.size - another.size) / 2
+            }),
             another.lifeCycle.nextStage(true),
             this.actor.scaleTo(this.actor.size + another.size * rate)
         ]);
@@ -118,8 +134,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     }
 
     async onSick(): Promise<void> {
-        await this.actor.fade(0);
-        await this.actor.scaleTo(this.actor.configuration.initSize);
+        await Promise.all([
+            this.actor.fade(0),
+            this.actor.scaleTo(this.actor.configuration.initSize),
+        ]);
         this.actor.display(false);
         await this.actor.goto(this.actor.randomInitPos(), 0);
     }
