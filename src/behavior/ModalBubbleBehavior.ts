@@ -76,13 +76,36 @@ export class ModalBubbleBehavior implements BubbleBehavior{
             y: (space.height - targetSize) / 2
         }
 
-        this.actor.goto(targetPos, duration * .2, true).then();
+        const posStop0 = {
+            x: targetPos.x,
+            y: targetPos.y - 6
+        }
 
-        await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
+        const posStop1 = {
+            x: targetPos.x,
+            y: targetPos.y + 4
+        }
+
+        this.actor.scaleTo(targetSize, .5 * duration, true);
+
+        const posBounce = async () => {
+            await this.actor.goto(posStop0, duration * .5, true);
+            await this.actor.goto(posStop1, duration * .3, true);
+            await this.actor.goto(targetPos, duration * .2, true);
+        }
+
+        const sizeBounce = async () => {
+            await this.actor.scaleTo(targetSize * 1.5, .5 * duration, true);
+            await this.actor.scaleTo(targetSize * 0.8, .3 * duration, true);
+            await this.actor.scaleTo(targetSize, .2 * duration, true);
+        }
+
+        await Promise.all([
+            posBounce(),
+            sizeBounce()
+        ]);
+
         this.actor.innerHTML = `bbbubble ${pkgJons.version}</br>made by ${pkgJons.author}`;
-        await this.actor.scaleTo(targetSize * 0.9, .3 * duration, true)
-        await this.actor.scaleTo(targetSize, .2 * duration, true);
-
 
         this.actor.element!.style.zIndex = "2";
         this.actor.element!.style.background= "#fff";
