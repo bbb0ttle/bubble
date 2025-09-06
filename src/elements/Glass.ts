@@ -1,5 +1,4 @@
 import {BBBubble} from "./BBBubble.ts";
-import {NormalBubbleBehavior} from "../behavior/NormalBehavior.ts";
 import {Stage} from "../behavior/BubbleLifeCycle.ts";
 
 export class Glass extends HTMLElement {
@@ -43,9 +42,6 @@ export class Glass extends HTMLElement {
     public async wakeBubblesUp() {
         for (const bubble of this.bubbles) {
             await bubble?.lifeCycle.nextStage();
-            if (bubble.behavior instanceof NormalBubbleBehavior) {
-                await bubble.behavior.eatEachOther();
-            }
         }
     }
 
@@ -57,7 +53,7 @@ export class Glass extends HTMLElement {
         }
 
         const randomBubble = this.getRandomBubble();
-        await randomBubble.lifeCycle.goto(Stage.DIED)
+        await randomBubble.lifeCycle.nextStage()
 
         return randomBubble;
     }
