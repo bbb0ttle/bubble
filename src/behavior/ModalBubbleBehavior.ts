@@ -95,7 +95,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         }
 
         const sizeBounce = async () => {
-            await this.actor.scaleTo(targetSize * 1.5, .5 * duration, true);
+            await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
             await this.actor.scaleTo(targetSize * 0.8, .3 * duration, true);
             await this.actor.scaleTo(targetSize, .2 * duration, true);
         }
