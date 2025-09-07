@@ -19,7 +19,6 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         this.actor.display(false);
 
         await this.actor.scaleTo(this.actor.randomInitSize());
-
         await this.actor.goto(this.actor.randomInitPos(), 0);
 
         this.actor.display(true);
@@ -35,11 +34,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         await this.actor.goto(this.actor.topPos(), this.actor.moveDuration());
         await this.actor.fade(0);
 
-        await this.actor.scaleTo(this.actor.configuration.initSize);
-
-        this.actor.display(false);
-
-        await this.actor.goto(this.actor.randomInitPos(), 0);
+        await this.actor.recycle();
 
         this._eatCount = 0;
     };
@@ -130,7 +125,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             this.actor.fade(0),
             this.actor.scaleTo(this.actor.configuration.initSize),
         ]);
-        this.actor.display(false);
-        await this.actor.goto(this.actor.randomInitPos(), 0);
+
+        await this.actor.recycle();
     }
 }

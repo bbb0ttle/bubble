@@ -16,6 +16,10 @@ export class BubbleLifeCycle {
         return this.stage === other.stage;
     }
 
+    async reset() {
+        this.stage = Stage.DIED;
+    }
+
     async nextStage(isSick: boolean = false): Promise<void> {
         if (isSick) {
             try {

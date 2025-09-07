@@ -80,6 +80,11 @@ export class AnimationController {
     }
   }
 
+  clear() {
+    this.animations.forEach((_, name) => this.stop(name));
+    this.animations.clear();
+  }
+
   async fade(opacity: number, targetOpacity: number, defaultAnimationDuration: number) {
     const a = this.animate('fade', [
       {opacity: opacity},

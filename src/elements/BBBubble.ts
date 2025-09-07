@@ -68,6 +68,19 @@ export class BBBubble extends HTMLElement {
         this.eventListener.destroy();
     }
 
+    async recycle() {
+        this.display(false);
+        await this.goto(this.randomInitPos(), 0);
+        await this.scaleTo(this.randomInitSize(), 0);
+
+        this.gotoParamQueue.clear();
+        this.animationCtrl.clear();
+        await this.lifeCycle.reset();
+
+        const behavior = this.getBehaviorByType();
+        await this.learn(behavior)
+    }
+
     async onParentConnect() {
         const originRect = this.space.glass!.getBoundingClientRect();
 
@@ -180,7 +193,7 @@ export class BBBubble extends HTMLElement {
         if (this.scaling) {
             return;
         }
-        this.scaling = true;
+
         const safeSize = force ? targetSize : this.getSafeSize(targetSize);
         this.element!.style.transitionDuration = duration + 'ms';
         await new Promise(resolve => {
