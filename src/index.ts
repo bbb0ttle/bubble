@@ -1,5 +1,6 @@
 import {Glass} from "./elements/Glass.ts";
 import {BBBubble} from './elements/BBBubble.ts';
+import { Stage } from "./behavior/BubbleLifeCycle.ts";
 
 if (!window.customElements.get('bb-bubble')) {
     window.BBBubble = BBBubble;
@@ -24,12 +25,11 @@ declare global {
 }
 
 export {
-    BBBubble, Glass
+    BBBubble, Glass, Stage
 };
 
 export type { BubbleBehavior } from "./behavior/BubbleBehavior.ts";
-export { ModalBubbleBehavior } from "./behavior/ModalBubbleBehavior.ts";
 export type { Position } from "./types/Position.ts";
-export { Stage } from "./behavior/BubbleLifeCycle.ts";
+
 
 
