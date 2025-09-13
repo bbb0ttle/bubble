@@ -96,22 +96,20 @@ export class Glass extends HTMLElement {
         window.addEventListener('resize', this.setViewportHeight);
         window.addEventListener('orientationchange', this.setViewportHeight);
 
-        this.collectBubblesFromSlot().then(() => {
-            this.wakeBubblesUp().then();
+        // use raf replace interval
+        const loop = async () => {
+            await this.delay(500 * Math.random());
+            const bubble = this.getRandomBubble();
+            bubble.lifeCycle.nextStage().then();
+            const prob = Math.random();
+            if (prob < 0.2) {
+                await this.wakeBubblesUp()
+            }
 
-            setInterval(async () => {
-                await this.delay(500 * Math.random());
+            requestAnimationFrame(loop);
+        }
 
-                const bubble = this.getRandomBubble();
-
-                bubble.lifeCycle.nextStage().then();
-
-                const prob = Math.random();
-                if (prob < 0.2) {
-                    await this.wakeBubblesUp()
-                }
-            }, 1000);
-        });
+        this.collectBubblesFromSlot().then(this.wakeBubblesUp.bind(this)).then(loop.bind(this));
     }
 
     public disconnectedCallback() {

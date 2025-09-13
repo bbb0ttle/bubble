@@ -30,7 +30,6 @@ export class BubbleEventListener {
     }
   
     private attachEventListeners(): void {
-        console.log("attaching event listeners");
 
       // Mouse events
       this.element.addEventListener('mouseleave', this.handleCancel.bind(this));
@@ -69,7 +68,6 @@ export class BubbleEventListener {
       }
   
       if (!this.isLongPress) {
-          console.log("short press detected");
         this.onShortPress(event);
       }
 
@@ -135,7 +133,7 @@ export class BubbleEventListener {
         this.targetBubble.behavior?.onShortPress(this.startCoords, event);
       }
     }
-  
+
     public destroy(): void {
       if (this.pressTimer) {
         clearTimeout(this.pressTimer);
