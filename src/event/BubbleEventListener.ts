@@ -30,9 +30,9 @@ export class BubbleEventListener {
     }
   
     private attachEventListeners(): void {
+        console.log("attaching event listeners");
+
       // Mouse events
-      this.element.addEventListener('mousedown', this.handleStart.bind(this));
-      this.element.addEventListener('mouseup', this.handleEnd.bind(this));
       this.element.addEventListener('mouseleave', this.handleCancel.bind(this));
       this.element.addEventListener('mousemove', this.handleMove.bind(this));
       this.element.addEventListener('click', this.handleClick.bind(this));
@@ -69,6 +69,7 @@ export class BubbleEventListener {
       }
   
       if (!this.isLongPress) {
+          console.log("short press detected");
         this.onShortPress(event);
       }
 
@@ -141,8 +142,6 @@ export class BubbleEventListener {
       }
       
       // Remove mouse listeners
-      this.element.removeEventListener('mousedown', this.handleStart);
-      this.element.removeEventListener('mouseup', this.handleEnd);
       this.element.removeEventListener('mouseleave', this.handleCancel);
       this.element.removeEventListener('mousemove', this.handleMove);
       this.element.removeEventListener('click', this.handleClick);
