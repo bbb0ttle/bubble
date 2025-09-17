@@ -62,14 +62,10 @@ export class AnimationController {
     return animation;
   }
 
-  private movePromise: Promise<void | string> = Promise.resolve("INIT");
+  private movePromise: Promise<void> = Promise.resolve();
 
   async move(from: Position, to: Position, duration: number) {
-    this.movePromise = this.movePromise.then((state) => {
-      if (state !== "INIT") {
-        from = this.actor.position
-      }
-
+    this.movePromise = this.movePromise.then(() => {
       return this.animate('move', [
         {translate: `${from.x}px ${from.y}px 0`},
         {translate: `${to.x}px ${to.y}px 0`},
@@ -147,19 +143,25 @@ export class AnimationController {
     this.animations.forEach((_, name) => this.cancel(name));
     this.animations.clear();
 
-    this.movePromise = Promise.resolve("INIT");
+    this.movePromise = Promise.resolve();
 
     this.animationsQueue.forEach((queue) => queue.clear());
   }
 
+  private fadePromise: Promise<void> = Promise.resolve();
+
   async fade(opacity: number, targetOpacity: number, defaultAnimationDuration: number) {
-    return this.animate('fade', [
-      {opacity: opacity},
-      {opacity: targetOpacity},
-    ], {
-      duration: defaultAnimationDuration,
-      iterations: 1,
-      easing: 'ease-in-out',
+    this.fadePromise = this.fadePromise.then(() => {
+      return this.animate('fade', [
+        {opacity: opacity},
+        {opacity: targetOpacity},
+      ], {
+        duration: defaultAnimationDuration,
+        iterations: 1,
+        easing: 'ease-in-out',
+      });
     });
+
+    await this.fadePromise;
   }
 }
