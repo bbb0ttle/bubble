@@ -7,8 +7,6 @@ import {BubbleLifeCycle} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
 import {BehaviorRegistry} from "../behavior/BehaviorRegistry.ts";
 import {BubbleEventListener} from "../event/BubbleEventListener.ts";
-import {Queue} from "../utils/queue.ts";
-import {MovePromise} from "../types/MoveOption.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -73,7 +71,6 @@ export class BBBubble extends HTMLElement {
         await this.goto(this.randomInitPos(), 0);
         await this.scaleTo(this.randomInitSize(), 0);
 
-        this.gotoParamQueue.clear();
         this.animationCtrl.clear();
         await this.lifeCycle.reset();
 
@@ -136,30 +133,8 @@ export class BBBubble extends HTMLElement {
         await someNew.onLearned();
     }
 
-    gotoParamQueue: Queue<MovePromise> = new Queue();
-
     async goto(target: Position, duration: number = 200, force = false) {
-        const movePromise = new MovePromise(target, duration, force);
-        await this.addMovePromise(movePromise);
-        await movePromise.done;
-    }
-
-    private async addMovePromise(movePromise: MovePromise) {
-        this.gotoParamQueue.enqueue(movePromise);
-
-        while (!this.gotoParamQueue.isEmpty()) {
-          await this.consumeFromQueue()
-        }
-    }
-
-    private async consumeFromQueue() {
-        if (this.gotoParamQueue.isEmpty()) {
-            return;
-        }
-
-        const next = this.gotoParamQueue.dequeue()!;
-        await this.move(next.target, next.duration, next.force)
-        next.resolve()
+        await this.move(target, duration, force);
     }
 
     private async move(target: Position, duration: number = 200, force = false) {
