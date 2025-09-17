@@ -78,6 +78,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
+        if (!another.lifeCycle.stable) {
+            return false;
+        }
+
         if (this.actor.size > another.size) {
             return this.eat(another);
         } else {
@@ -89,10 +93,6 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
     private async eat(another: BBBubble) {
         const rate = this.actor.configuration.sizeGrowRate;
-
-        if (!another.lifeCycle.stable) {
-            return;
-        }
 
         await Promise.all([
             another.goto({

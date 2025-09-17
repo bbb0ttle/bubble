@@ -38,9 +38,25 @@ export class AnimationController {
         easing: 'ease-in-out',
     });
 
-    await a.finished;
+    await this.ensureAnimationFinish(a, duration + 100, 'move');
 
     return a;
+  }
+
+  private async ensureAnimationFinish(a: Animation, timeout: number, name: string) {
+    try {
+      // 添加超时保护，比动画时长多一点时间
+      await Promise.race([
+        a.finished,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Animation timeout')), timeout)
+        )
+      ]);
+    } catch (error) {
+      // 清理动画
+      this.cancel(name);
+      console.warn('Animation failed or timed out:', error);
+    }
   }
 
   public async scaleTo(start: number, end: number, duration: number) {
@@ -53,7 +69,8 @@ export class AnimationController {
       });
 
 
-      await a.finished;
+      // await a.finished;
+      await this.ensureAnimationFinish(a, duration + 100, 'scale');
   }
 
 
@@ -95,7 +112,7 @@ export class AnimationController {
       easing: 'ease-in-out',
     });
 
-    await a.finished;
+    await this.ensureAnimationFinish(a, defaultAnimationDuration + 100, 'fade');
 
     return a;
   }
