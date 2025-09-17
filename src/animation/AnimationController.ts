@@ -98,7 +98,7 @@ export class AnimationController {
   }
 
   clear() {
-    this.animations.forEach((_, name) => this.stop(name));
+    this.animations.forEach((_, name) => this.cancel(name));
     this.animations.clear();
   }
 

@@ -3,7 +3,7 @@ import type {Position} from "../types/Position.ts";
 import {AnimationController} from "../animation/AnimationController.ts";
 import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/BubbleConfiguration.ts";
 import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
-import {BubbleLifeCycle} from "../behavior/BubbleLifeCycle.ts";
+import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
 import {BehaviorRegistry} from "../behavior/BehaviorRegistry.ts";
 import {BubbleEventListener} from "../event/BubbleEventListener.ts";
