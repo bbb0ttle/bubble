@@ -64,6 +64,9 @@ export class BubbleLifeCycle {
     }
 
     private async born() {
+        // delay 200ms
+        await new Promise((r) => setTimeout(r, 200));
+
         try {
             await this.bubble.behavior.onBorn();
         } catch (e) {
