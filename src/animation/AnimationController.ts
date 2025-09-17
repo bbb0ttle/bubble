@@ -1,45 +1,26 @@
-import type { AnimationParam } from "../types/AnimationParam.ts";
 import type {Position} from "../types/Position.ts";
-import { Queue } from "../utils/queue.ts";
 import type {BBBubble} from "../elements/BBBubble.ts";
 
 export class AnimationController {
   element: HTMLElement;
   actor: BBBubble;
   animations: Map<string, Animation>;
-  animationsQueue: Map<string, Queue<AnimationParam>> = new Map();
+  execPromiseMap: Map<string, Promise<void>> = new Map();
   constructor(bubble: BBBubble) {
     this.actor = bubble;
     this.element = bubble.element!;
     this.animations = new Map();
   }
 
-  execLock: Map<string, boolean> = new Map();
-
   async animate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}) {
-    if (!this.animationsQueue.has(name)) {
-      this.animationsQueue.set(name, new Queue<AnimationParam>());
-    }
 
-    const queue = this.animationsQueue.get(name);
+    const currentPromise = this.execPromiseMap.get(name) || Promise.resolve();
 
-    if (queue) {
-      queue.enqueue({name, keyframes, options});
-    }
+    return currentPromise.then(() => {
+      const a = this.execAnimate(name, keyframes, options);
+      return this.ensureAnimationFinish(a, (options.duration as number || 200) + 100, name);
 
-    if (this.execLock.get(name)) {
-      return;
-    }
-
-    this.execLock.set(name, true);
-
-    while (queue && !queue.isEmpty()) {
-      const param = queue.dequeue()!;
-      const a = this.execAnimate(param.name, param.keyframes, param.options);
-      await this.ensureAnimationFinish(a, (param.options.duration as number || 200) + 100, param.name);
-    }
-
-    this.execLock.set(name, false);
+    })
   }
 
   execAnimate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}): Animation {
@@ -148,8 +129,8 @@ export class AnimationController {
     this.animations.clear();
 
     this.movePromise = Promise.resolve();
-
-    this.animationsQueue.forEach((queue) => queue.clear());
+    this.fadePromise = Promise.resolve();
+    this.execPromiseMap.clear();
   }
 
   private fadePromise: Promise<void> = Promise.resolve();
