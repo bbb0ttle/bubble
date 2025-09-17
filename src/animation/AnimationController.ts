@@ -49,7 +49,7 @@ export class AnimationController {
       await Promise.race([
         a.finished,
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Animation timeout')), timeout)
+          setTimeout(() => reject(new Error('Animation timeout: ' + name)), timeout)
         )
       ]);
     } catch (error) {

@@ -9,10 +9,8 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
     actor: BBBubble;
 
-    after = async (s: Stage) => {
-        if (s === Stage.GROWN || s === Stage.BORN) {
-            await this.eatOthers();
-        }
+    after = async (_s: Stage) => {
+        await this.eatOthers();
     }
 
     onBorn: () => Promise<void> = async () => {
@@ -58,6 +56,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
+        if (!(another.behavior instanceof NormalBubbleBehavior)) {
+            return false;
+        }
+
         if (another == this.actor) {
             return false;
         }
@@ -70,15 +72,8 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
-        if (!another.lifeCycle.stable) {
-            return false;
-        }
-
-        if (!(another.behavior instanceof NormalBubbleBehavior)) {
-            return false;
-        }
-
-        if (!another.lifeCycle.stable) {
+        if (!another.lifeCycle.stable || !this.actor.lifeCycle.stable) {
+            console.log("One is not stable");
             return false;
         }
 
@@ -99,6 +94,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
                 x: this.actor.position.x + (this.actor.size - another.size) / 2,
                 y: this.actor.position.y + (this.actor.size - another.size) / 2
             }),
+            another.scaleTo(another.size * 0.2),
             another.lifeCycle.nextStage(true),
             this.actor.scaleTo(this.actor.size + another.size * rate)
         ]);
@@ -111,6 +107,9 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         ])
 
         this._eatCount++
+
+        await this.eatOthers();
+
         return true;
     }
 
