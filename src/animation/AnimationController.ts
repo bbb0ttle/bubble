@@ -66,6 +66,10 @@ export class AnimationController {
 
   async move(from: Position, to: Position, duration: number) {
     this.movePromise = this.movePromise.then(() => {
+      if (from.x != this.actor.position.x || from.y != this.actor.position.y) {
+        from = {x: this.actor.position.x, y: this.actor.position.y};
+      }
+
       return this.animate('move', [
         {translate: `${from.x}px ${from.y}px 0`},
         {translate: `${to.x}px ${to.y}px 0`},
@@ -152,6 +156,10 @@ export class AnimationController {
 
   async fade(opacity: number, targetOpacity: number, defaultAnimationDuration: number) {
     this.fadePromise = this.fadePromise.then(() => {
+      if (opacity != this.actor.opacity) {
+        opacity = this.actor.opacity;
+      }
+
       return this.animate('fade', [
         {opacity: opacity},
         {opacity: targetOpacity},
