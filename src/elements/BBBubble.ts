@@ -57,7 +57,7 @@ export class BBBubble extends HTMLElement {
         this.root.adoptedStyleSheets = [stylesheet];
 
         this.element = this.root.querySelector('.bubble');
-        this.animationCtrl = new AnimationController(this.element!);
+        this.animationCtrl = new AnimationController(this);
 
         this.dispatchEvent(new CustomEvent('bubble-connected', {
             bubbles: true,

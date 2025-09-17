@@ -1,17 +1,22 @@
 import type { AnimationParam } from "../types/AnimationParam.ts";
 import type {Position} from "../types/Position.ts";
 import { Queue } from "../utils/queue.ts";
+import type {BBBubble} from "../elements/BBBubble.ts";
 
 export class AnimationController {
   element: HTMLElement;
+  actor: BBBubble;
   animations: Map<string, Animation>;
   animationsQueue: Map<string, Queue<AnimationParam>> = new Map();
-  constructor(element: HTMLElement) {
-    this.element = element;
+  constructor(bubble: BBBubble) {
+    this.actor = bubble;
+    this.element = bubble.element!;
     this.animations = new Map();
   }
 
-  animate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}) {
+  execLock: Map<string, boolean> = new Map();
+
+  async animate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}) {
     if (!this.animationsQueue.has(name)) {
       this.animationsQueue.set(name, new Queue<AnimationParam>());
     }
@@ -19,13 +24,22 @@ export class AnimationController {
     const queue = this.animationsQueue.get(name);
 
     if (queue) {
-      queue.enqueue({name, keyframes, options}) as unknown as Animation;
+      queue.enqueue({name, keyframes, options});
     }
+
+    if (this.execLock.get(name)) {
+      return;
+    }
+
+    this.execLock.set(name, true);
 
     while (queue && !queue.isEmpty()) {
       const param = queue.dequeue()!;
-      return this.execAnimate(param.name, param.keyframes, param.options);
+      const a = this.execAnimate(param.name, param.keyframes, param.options);
+      await this.ensureAnimationFinish(a, (param.options.duration as number || 200) + 100, param.name);
     }
+
+    this.execLock.set(name, false);
   }
 
   execAnimate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}): Animation {
@@ -48,19 +62,25 @@ export class AnimationController {
     return animation;
   }
 
+  private movePromise: Promise<void | string> = Promise.resolve("INIT");
+
   async move(from: Position, to: Position, duration: number) {
-    const a = this.animate('move', [
-      {translate: `${from.x}px ${from.y}px 0`},
-      {translate: `${to.x}px ${to.y}px 0`},
-    ], {
+    this.movePromise = this.movePromise.then((state) => {
+      if (state !== "INIT") {
+        from = this.actor.position
+      }
+
+      return this.animate('move', [
+        {translate: `${from.x}px ${from.y}px 0`},
+        {translate: `${to.x}px ${to.y}px 0`},
+      ], {
         duration: duration,
         iterations: 1,
         easing: 'ease-in-out',
-    });
+      });
+    })
 
-    await this.ensureAnimationFinish(a, duration + 100, 'move');
-
-    return a;
+    await this.movePromise;
   }
 
   private async ensureAnimationFinish(a: Animation | undefined, timeout: number, name: string) {
@@ -68,33 +88,35 @@ export class AnimationController {
       return;
     }
 
+    let timeoutId: number | undefined;
+
     try {
       // 添加超时保护，比动画时长多一点时间
       await Promise.race([
         a.finished,
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Animation timeout: ' + name)), timeout)
+          timeoutId = setTimeout(() => reject(new Error('Animation timeout: ' + name)), timeout)
         )
       ]);
     } catch (error) {
       // 清理动画
       this.cancel(name);
       console.warn('Animation failed or timed out:', error);
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   }
 
   public async scaleTo(start: number, end: number, duration: number) {
-      const a = this.animate('scale', [
+      return this.animate('scale', [
         {transform: `scale(${start})`},
         {transform: `scale(${end})`},
       ], {
         duration: duration,
         iterations: 1,
       });
-
-
-      // await a.finished;
-      await this.ensureAnimationFinish(a, duration + 100, 'scale');
   }
 
 
@@ -125,11 +147,13 @@ export class AnimationController {
     this.animations.forEach((_, name) => this.cancel(name));
     this.animations.clear();
 
+    this.movePromise = Promise.resolve("INIT");
+
     this.animationsQueue.forEach((queue) => queue.clear());
   }
 
   async fade(opacity: number, targetOpacity: number, defaultAnimationDuration: number) {
-    const a = this.animate('fade', [
+    return this.animate('fade', [
       {opacity: opacity},
       {opacity: targetOpacity},
     ], {
@@ -137,9 +161,5 @@ export class AnimationController {
       iterations: 1,
       easing: 'ease-in-out',
     });
-
-    await this.ensureAnimationFinish(a, defaultAnimationDuration + 100, 'fade');
-
-    return a;
   }
 }
