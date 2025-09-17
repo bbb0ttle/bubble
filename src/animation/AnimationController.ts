@@ -1,14 +1,34 @@
+import type { AnimationParam } from "../types/AnimationParam.ts";
 import type {Position} from "../types/Position.ts";
+import { Queue } from "../utils/queue.ts";
 
 export class AnimationController {
   element: HTMLElement;
   animations: Map<string, Animation>;
+  animationsQueue: Map<string, Queue<AnimationParam>> = new Map();
   constructor(element: HTMLElement) {
     this.element = element;
     this.animations = new Map();
   }
 
-  animate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}): Animation {
+  animate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}) {
+    if (!this.animationsQueue.has(name)) {
+      this.animationsQueue.set(name, new Queue<AnimationParam>());
+    }
+
+    const queue = this.animationsQueue.get(name);
+
+    if (queue) {
+      queue.enqueue({name, keyframes, options}) as unknown as Animation;
+    }
+
+    while (queue && !queue.isEmpty()) {
+      const param = queue.dequeue()!;
+      return this.execAnimate(param.name, param.keyframes, param.options);
+    }
+  }
+
+  execAnimate(name: string, keyframes: Keyframe[], options: KeyframeAnimationOptions = {}): Animation {
     if (this.animations.has(name)) {
       this.cancel(name);
     }
@@ -43,7 +63,11 @@ export class AnimationController {
     return a;
   }
 
-  private async ensureAnimationFinish(a: Animation, timeout: number, name: string) {
+  private async ensureAnimationFinish(a: Animation | undefined, timeout: number, name: string) {
+    if (!a) {
+      return;
+    }
+
     try {
       // 添加超时保护，比动画时长多一点时间
       await Promise.race([
@@ -100,6 +124,8 @@ export class AnimationController {
   clear() {
     this.animations.forEach((_, name) => this.cancel(name));
     this.animations.clear();
+
+    this.animationsQueue.forEach((queue) => queue.clear());
   }
 
   async fade(opacity: number, targetOpacity: number, defaultAnimationDuration: number) {
