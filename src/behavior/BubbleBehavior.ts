@@ -14,8 +14,6 @@ export interface BubbleBehavior {
 
     onGrown: () => Promise<void>;
 
-    onSick: () => Promise<void>;
-
     onDeath: () => Promise<void>;
 
     after?: (stage: Stage) => Promise<void>;

@@ -43,9 +43,9 @@ export class BubbleLifeCycle {
         if (next) {
             await this.goto(next);
         } else {
+            this._transitioning = false;
             return;
         }
-        this._transitioning = false;
 
         if (this.bubble.behavior.after) {
             try {
@@ -54,6 +54,8 @@ export class BubbleLifeCycle {
                 console.error("after stage error:", error);
             }
         }
+
+        this._transitioning = false;
     }
 
     isAt(stage: Stage): boolean {

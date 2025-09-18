@@ -42,6 +42,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         await this.actor.lifeCycle.nextStage();
     };
 
+    public eating = false;
     private async eatOthers() {
         const others = this.actor.getSiblings();
         if (!others.length) {
@@ -57,6 +58,10 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         }
 
         if (!(another.behavior instanceof NormalBubbleBehavior)) {
+            return false;
+        }
+
+        if (another.behavior.eating) {
             return false;
         }
 
@@ -82,6 +87,12 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     private _eatCount = 0;
 
     private async eat(another: BBBubble) {
+        if (this.eating) {
+            return false;
+        }
+
+        this.eating = true;
+
         const rate = this.actor.configuration.sizeGrowRate;
 
         await Promise.all([
@@ -105,6 +116,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
         await this.eatOthers();
 
+        this.eating = false;
         return true;
     }
 
