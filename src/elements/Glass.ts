@@ -62,12 +62,6 @@ export class Glass extends HTMLElement {
         return this.root.querySelector('.glass') as HTMLElement;
     }
 
-    private async delay(ms: number) {
-        return new Promise((r) => {
-            setTimeout(r, ms)
-        })
-    }
-
     public connectedCallback() {
         const styleSheet = new CSSStyleSheet();
 
