@@ -34,23 +34,6 @@ export class ImmortalBehavior implements BubbleBehavior {
     }
 
     onClick = async () => {
-        await this.actor.bounce();
-
-        const siblings = this.actor.getSiblings();
-        for (const s of siblings) {
-            await this.delay(Math.random() * 100);
-            if (!s.space || !s.spaceRect) {
-                continue;
-            }
-
-            await s.lifeCycle.nextStage();
-        }
-    }
-
-    private delay(ms: number) {
-        return new Promise((r) => {
-            setTimeout(r, ms)
-        })
     }
 
     onDeath(): Promise<void> {

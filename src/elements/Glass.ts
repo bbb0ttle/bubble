@@ -39,12 +39,6 @@ export class Glass extends HTMLElement {
         return this.bubbles[index];
     }
 
-    public async wakeBubblesUp() {
-        for (const bubble of this.bubbles) {
-            await bubble?.lifeCycle.nextStage();
-        }
-    }
-
     public async getRandomDiedBubble() {
         const diedBubbles = this.bubbles.filter(bubble => bubble.lifeCycle.isAt(Stage.DIED));
         if (diedBubbles.length !== 0) {
@@ -53,7 +47,6 @@ export class Glass extends HTMLElement {
         }
 
         const randomBubble = this.getRandomBubble();
-        await randomBubble.lifeCycle.nextStage()
 
         return randomBubble;
     }
@@ -90,7 +83,7 @@ export class Glass extends HTMLElement {
         window.addEventListener('resize', this.setViewportHeight);
         window.addEventListener('orientationchange', this.setViewportHeight);
 
-        this.collectBubblesFromSlot().then(this.wakeBubblesUp.bind(this));
+        this.collectBubblesFromSlot();
     }
 
     public disconnectedCallback() {

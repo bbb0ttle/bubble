@@ -33,10 +33,10 @@ export class BubbleLifeCycle {
     }
 
     async reset() {
-        this.stage = Stage.DIED;
+        this.stage = Stage.RECYCLED;
     }
 
-    async nextStage(): Promise<void> {
+    private async nextStage(): Promise<void> {
         if (this._transitioning) { return; }
         this._transitioning = true;
         const next = this.stageCycleMap.get(this.stage);
