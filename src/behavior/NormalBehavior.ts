@@ -90,7 +90,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
                 y: this.actor.position.y + (this.actor.size - another.size) / 2
             }),
             another.scaleTo(another.size * 0.2),
-            another.lifeCycle.nextStage(true),
+            another.fade(0),
             this.actor.scaleTo(this.actor.size + another.size * rate)
         ]);
 
@@ -112,14 +112,5 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
     onLearned(): Promise<void> {
         return Promise.resolve(undefined);
-    }
-
-    async onSick(): Promise<void> {
-        await Promise.all([
-            this.actor.fade(0),
-            this.actor.scaleTo(this.actor.configuration.initSize),
-        ]);
-
-        await this.actor.recycle();
     }
 }
