@@ -3,7 +3,7 @@ import type {Position} from "../types/Position.ts";
 import {AnimationController} from "../animation/AnimationController.ts";
 import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/BubbleConfiguration.ts";
 import {type BubbleBehavior} from "../behavior/BubbleBehavior.ts";
-import {BubbleLifeCycle} from "../behavior/BubbleLifeCycle.ts";
+import {BubbleLifeCycle, Stage} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
 import {BehaviorRegistry} from "../behavior/BehaviorRegistry.ts";
 import {BubbleEventListener} from "../event/BubbleEventListener.ts";
@@ -68,10 +68,10 @@ export class BBBubble extends HTMLElement {
 
     async recycle() {
         this.display(false);
+        this.animationCtrl.clear();
         await this.goto(this.randomInitPos(), 0);
         await this.scaleTo(this.randomInitSize(), 0);
 
-        this.animationCtrl.clear();
         await this.lifeCycle.reset();
 
         const behavior = this.getBehaviorByType();
@@ -134,20 +134,7 @@ export class BBBubble extends HTMLElement {
     }
 
     async goto(target: Position, duration: number = 200, force = false) {
-        await this.move(target, duration, force);
-    }
-
-    private async move(target: Position, duration: number = 200, force = false) {
         target = force ? target : this.getSafePos(target);
-
-        if (duration == 0) {
-            requestAnimationFrame(() => {
-                this.element!.style.setProperty("translate", `${target.x}px ${target.y}px`, 'important');
-            })
-
-            this.position = target;
-            return;
-        }
 
         this.element!.style.removeProperty("translate");
 
@@ -191,6 +178,11 @@ export class BBBubble extends HTMLElement {
     }
 
     async fade(targetOpacity: number, duration: number = this.configuration.defaultAnimationDuration) {
+        var display = this.element!.style.getPropertyValue("display");
+        if (display === "none" && targetOpacity > 0) {
+            return;
+        }
+
         await this.animationCtrl.fade(this.opacity, targetOpacity, duration);
         this.opacity = targetOpacity;
     }

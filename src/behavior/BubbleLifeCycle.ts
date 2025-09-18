@@ -10,32 +10,39 @@ export class BubbleLifeCycle {
     constructor(bubble: BBBubble, stage: Stage = Stage.DIED) {
         this.bubble = bubble;
         this.stage = stage;
+
+        this.cycle();
+    }
+
+    private animationFrameId: number = -1;
+    private cycle = async () => {
+        await this.nextStage();
+        this.animationFrameId = window.requestAnimationFrame(this.cycle)
     }
 
     isAtTheSameStageWith(other: BubbleLifeCycle): boolean {
         return this.stage === other.stage;
     }
 
+    stop() {
+        if (this.animationFrameId !== -1) {
+            window.cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = -1;
+        }
+    }
+
     async reset() {
         this.stage = Stage.DIED;
     }
 
-    async nextStage(isSick: boolean = false): Promise<void> {
-        if (isSick) {
-            try {
-                await this.bubble.behavior.onSick();
-            } catch (error) {
-                console.error("onSick error:", error);
-            }
-
-            return;
-        }
-
+    async nextStage(): Promise<void> {
         if (this._transitioning) { return; }
         this._transitioning = true;
         const next = this.stageCycleMap.get(this.stage);
         if (next) {
             await this.goto(next);
+        } else {
+            return;
         }
         this._transitioning = false;
 
@@ -64,9 +71,6 @@ export class BubbleLifeCycle {
     }
 
     private async born() {
-        // delay 200ms
-        await new Promise((r) => setTimeout(r, 200));
-
         try {
             await this.bubble.behavior.onBorn();
         } catch (e) {
@@ -78,6 +82,9 @@ export class BubbleLifeCycle {
     }
 
     private async died() {
+        const randomDuratio = () => Math.random() * 2000;
+        await new Promise((r) => setTimeout(r, 1000 + randomDuratio()));
+
         try {
             await this.bubble.behavior.onDeath();
         } catch (e) {
@@ -99,8 +106,10 @@ export class BubbleLifeCycle {
         } catch (e) {
             console.error("onGrown error:", e);
         }
+
         this.stage = Stage.GROWN;
         this.bubble.dispatchEvent(new CustomEvent(Stage.GROWN, { bubbles: true, composed: true }));
+
     }
 
     private stageActionMap: Map<Stage, () => Promise<void>> = new Map([

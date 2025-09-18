@@ -72,11 +72,6 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             return false;
         }
 
-        if (!another.lifeCycle.stable || !this.actor.lifeCycle.stable) {
-            console.log("One is not stable");
-            return false;
-        }
-
         if (this.actor.size > another.size) {
             return this.eat(another);
         } else {
