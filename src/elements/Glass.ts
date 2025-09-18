@@ -35,12 +35,13 @@ export class Glass extends HTMLElement {
     }
 
     private getRandomBubble() {
-        const index = Math.floor(Math.random() * this.bubbles.length);
-        return this.bubbles[index];
+        const diedBubbles = this.bubbles.filter(bubble => bubble.lifeCycle.isAt(Stage.RECYCLED));
+        const index = Math.floor(Math.random() * diedBubbles.length);
+        return diedBubbles[index];
     }
 
     public async getRandomDiedBubble() {
-        const diedBubbles = this.bubbles.filter(bubble => bubble.lifeCycle.isAt(Stage.DIED));
+        const diedBubbles = this.bubbles.filter(bubble => bubble.lifeCycle.isAt(Stage.RECYCLED));
         if (diedBubbles.length !== 0) {
             const dice = Math.floor(Math.random() * diedBubbles.length);
             return diedBubbles[dice];

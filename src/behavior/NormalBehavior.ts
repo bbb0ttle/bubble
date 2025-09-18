@@ -125,7 +125,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
     onForgot: () => Promise<void> = async() => {};
 
-    onLearned(): Promise<void> {
-        return Promise.resolve(undefined);
+    async onLearned(): Promise<void> {
+        this.eating = false;
     }
 }
