@@ -25,10 +25,17 @@ export class NormalBubbleBehavior implements BubbleBehavior {
     };
 
     onGrown: () => Promise<void> = async () => {
+        if (this.eating) {
+            return;
+        }
+
         await this.actor.goto(this.actor.idlePos(), this.actor.moveDuration() + 100 * Math.random());
     }
 
     onDeath: () => Promise<void> = async () => {
+        if (this.eating) {
+            return;
+        }
         await this.actor.goto(this.actor.topPos(), this.actor.moveDuration());
         await this.actor.fade(0);
 
