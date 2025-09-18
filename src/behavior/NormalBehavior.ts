@@ -105,14 +105,9 @@ export class NormalBubbleBehavior implements BubbleBehavior {
             this.actor.scaleTo(this.actor.size + another.size * rate)
         ]);
 
-        await Promise.all([
-            this.actor.goto(this.actor.idlePos(), this.actor.moveDuration()),
-            Math.random() < 0.1
-                ? this.actor.lifeCycle.nextStage()
-                : Promise.resolve()
-        ])
+        await this.actor.goto(this.actor.idlePos(), this.actor.moveDuration());
 
-        this._eatCount++
+        this._eatCount++;
 
         await this.eatOthers();
 
