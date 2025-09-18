@@ -113,6 +113,8 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
         await this.actor.goto(this.actor.idlePos(), this.actor.moveDuration());
 
+        await another.recycle();
+
         this._eatCount++;
 
         await this.eatOthers();
