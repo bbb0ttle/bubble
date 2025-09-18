@@ -85,8 +85,8 @@ export class BubbleLifeCycle {
     }
 
     private async died() {
-        const randomDuratio = () => Math.random() * 2000;
-        await new Promise((r) => setTimeout(r, 1000 + randomDuratio()));
+        const randomDuratio = () => Math.random() * 5000;
+        await new Promise((r) => setTimeout(r, 500 + randomDuratio()));
 
         try {
             await this.bubble.behavior.onDeath();
@@ -119,8 +119,8 @@ export class BubbleLifeCycle {
         this.stage = Stage.RECYCLED;
 
         try {
-            const randomDuratio = () => Math.random() * 2000;
-            await new Promise((r) => setTimeout(r, 1000 + randomDuratio()));
+            const randomDuratio = () => Math.random() * 5000;
+            await new Promise((r) => setTimeout(r, 500 + randomDuratio()));
         } catch (e) {
             console.error("onRecycle error:", e);
         }
