@@ -4,6 +4,7 @@ export enum Stage {
     BORN = 'bubble-born',
     GROWN = 'bubble-grown',
     DIED = 'bubble-died',
+    RECYCLED = 'bubble-recycled',
 }
 
 export class BubbleLifeCycle {
@@ -112,14 +113,29 @@ export class BubbleLifeCycle {
 
     }
 
+    private async recycle() {
+        this.stage = Stage.RECYCLED;
+
+        try {
+            const randomDuratio = () => Math.random() * 2000;
+            await new Promise((r) => setTimeout(r, 1000 + randomDuratio()));
+        } catch (e) {
+            console.error("onRecycle error:", e);
+        }
+        
+        this.bubble.dispatchEvent(new CustomEvent(Stage.RECYCLED, { bubbles: true, composed: true }));
+    }
+
     private stageActionMap: Map<Stage, () => Promise<void>> = new Map([
         [Stage.DIED, this.died.bind(this)],
         [Stage.BORN, this.born.bind(this)],
         [Stage.GROWN, this.grown.bind(this)],
+        [Stage.RECYCLED, this.recycle.bind(this)],
     ]);
 
     private stageCycleMap: Map<Stage, Stage> = new Map([
-        [Stage.DIED, Stage.BORN],
+        [Stage.DIED, Stage.RECYCLED],
+        [Stage.RECYCLED, Stage.BORN],
         [Stage.BORN, Stage.GROWN],
         [Stage.GROWN, Stage.DIED],
     ]);
