@@ -103,8 +103,8 @@ export class NormalBubbleBehavior implements BubbleBehavior {
 
         await Promise.all([
             another.goto({
-                x: this.actor.position.x + (this.actor.size - another.size) / 2,
-                y: this.actor.position.y + (this.actor.size - another.size) / 2
+                x: this.actor.position.x + this.actor.size / 2,
+                y: this.actor.position.y + this.actor.size / 2
             }),
             another.scaleTo(another.size * 0.2),
             another.fade(0),
