@@ -23,13 +23,13 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         this.actor.display(false);
         await this.actor.scaleTo(this._size);
         this.actor.display(true)
-        this.actor.fade(this.actor.randomInitOpacity()).then();
-
         const rect = this.actor.spaceRect!;
 
         this._pos = { x: rect.width - 80, y: rect.height - 80 };
 
         await this.actor.goto(this._pos, 200, true);
+
+        this.actor.fade(this.actor.randomInitOpacity()).then();
 
         this.born = true;
     };
@@ -88,6 +88,13 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         this.actor.scaleTo(targetSize, .5 * duration, true);
 
+        this.actor.externalStyle.replaceSync(`
+            .bubble {
+                background: #fff;
+                z-index: 2;
+            }
+        `);
+
         const posBounce = async () => {
             await this.actor.goto(posStop0, duration * .5, true);
             await this.actor.goto(posStop1, duration * .3, true);
@@ -107,8 +114,6 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         this.actor.innerHTML = `bbbubble ${pkgJons.version}</br>made for soda`;
 
-        this.actor.element!.style.zIndex = "2";
-        this.actor.element!.style.background= "#fff";
 
     }
 
@@ -137,15 +142,14 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         await this.actor.goto(this._pos, duration * .2, true);
 
 
-        this.actor.element!.style.zIndex = "1";
-        this.actor.element!.style.background= "none";
+        this.actor.externalStyle.replaceSync(`
+            .bubble {
+                background: none;
+                z-index: 1;
+            }
+        `);
       }
 
-    onLearned(): Promise<void> {
-        return Promise.resolve(undefined);
-    }
-
-    onSick(): Promise<void> {
-        return Promise.resolve(undefined);
+    async onLearned(): Promise<void> {
     }
 }

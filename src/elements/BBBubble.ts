@@ -7,6 +7,7 @@ import {BubbleLifeCycle} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
 import {BehaviorRegistry} from "../behavior/BehaviorRegistry.ts";
 import {BubbleEventListener} from "../event/BubbleEventListener.ts";
+import { ExternalStyle } from "../style/ExternalStyle.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -60,6 +61,8 @@ export class BBBubble extends HTMLElement {
         this.dispatchEvent(new CustomEvent('bubble-connected', {
             bubbles: true,
         }))
+
+        this.externalStyle = new ExternalStyle(this);
     }
 
     disconnectedCallback() {
@@ -73,6 +76,8 @@ export class BBBubble extends HTMLElement {
         await this.scaleTo(this.randomInitSize(), 0);
 
         await this.lifeCycle.reset();
+
+        this.externalStyle.destroy();
 
         const behavior = this.getBehaviorByType();
         await this.learn(behavior)
@@ -283,6 +288,9 @@ export class BBBubble extends HTMLElement {
     // 活动空间
     space: Glass;
     spaceRect: DOMRect | null = null;
+
+    // 外部样式
+    externalStyle!: ExternalStyle;
 
     // 参数配置
     configuration: BubbleConfiguration;

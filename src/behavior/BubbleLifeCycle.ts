@@ -17,9 +17,12 @@ export class BubbleLifeCycle {
 
     private animationFrameId: number = -1;
     private cycle = async () => {
-        const randomDuratio = () => Math.random() * 1000;
-        await new Promise((r) => setTimeout(r, randomDuratio()));
-        await this.nextStage();
+        if (this.bubble.spaceRect) {
+            const randomDuratio = () => Math.random() * 1000;
+            await new Promise((r) => setTimeout(r, randomDuratio()));
+            await this.nextStage();
+        }
+
         this.animationFrameId = window.requestAnimationFrame(this.cycle)
     }
 
