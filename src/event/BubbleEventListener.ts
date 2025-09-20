@@ -19,7 +19,11 @@ export class BubbleEventListener {
         return;
       }
 
-        this.targetBubble.behavior?.onClick(evt);
+      if ((evt as PointerEvent).pointerType !== 'mouse') {
+        return;
+      }
+
+      this.targetBubble.behavior?.onClick(evt);
     };
   
     constructor(bubble: BBBubble, options: LongPressOptions = {}) {
