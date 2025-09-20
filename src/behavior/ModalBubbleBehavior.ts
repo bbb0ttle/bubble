@@ -88,7 +88,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
 
         this.actor.scaleTo(targetSize, .5 * duration, true);
 
-        this.actor.externalStyle.replaceSync(`
+        this.actor.styleInfo.replaceSync(`
             .bubble {
                 background: #fff;
                 z-index: 2;
@@ -142,7 +142,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         await this.actor.goto(this._pos, duration * .2, true);
 
 
-        this.actor.externalStyle.replaceSync(`
+        this.actor.styleInfo.replaceSync(`
             .bubble {
                 background: none;
                 z-index: 1;

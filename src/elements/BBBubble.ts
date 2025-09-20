@@ -1,4 +1,3 @@
-import {css} from "../style/style.ts";
 import type {Position} from "../types/Position.ts";
 import {AnimationController} from "../animation/AnimationController.ts";
 import {BaseBubbleConfiguration, type BubbleConfiguration} from "../config/BubbleConfiguration.ts";
@@ -7,7 +6,7 @@ import {BubbleLifeCycle} from "../behavior/BubbleLifeCycle.ts";
 import type {Glass} from "./Glass.ts";
 import {BehaviorRegistry} from "../behavior/BehaviorRegistry.ts";
 import {BubbleEventListener} from "../event/BubbleEventListener.ts";
-import { ExternalStyle } from "../style/ExternalStyle.ts";
+import { BubbleStyle } from "../style/BubbleStyle.ts";
 
 export class BBBubble extends HTMLElement {
     root: ShadowRoot;
@@ -51,18 +50,13 @@ export class BBBubble extends HTMLElement {
 
     connectedCallback() {
         // style
-        const stylesheet = new CSSStyleSheet();
-        stylesheet.replaceSync(css(this.configuration.initSize));
-        this.root.adoptedStyleSheets = [stylesheet];
-
+        this.styleInfo = new BubbleStyle(this, this.configuration.initSize);
         this.element = this.root.querySelector('.bubble');
         this.animationCtrl = new AnimationController(this);
 
         this.dispatchEvent(new CustomEvent('bubble-connected', {
             bubbles: true,
         }))
-
-        this.externalStyle = new ExternalStyle(this);
     }
 
     disconnectedCallback() {
@@ -77,7 +71,7 @@ export class BBBubble extends HTMLElement {
 
         await this.lifeCycle.reset();
 
-        this.externalStyle.destroy();
+        this.styleInfo.destroy();
 
         const behavior = this.getBehaviorByType();
         await this.learn(behavior)
@@ -269,6 +263,9 @@ export class BBBubble extends HTMLElement {
     // 尺寸
     size: number;
 
+    // 样式
+    styleInfo!: BubbleStyle;
+
     // 位置
     position: Position;
 
@@ -288,9 +285,6 @@ export class BBBubble extends HTMLElement {
     // 活动空间
     space: Glass;
     spaceRect: DOMRect | null = null;
-
-    // 外部样式
-    externalStyle!: ExternalStyle;
 
     // 参数配置
     configuration: BubbleConfiguration;
