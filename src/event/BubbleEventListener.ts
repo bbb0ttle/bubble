@@ -14,12 +14,12 @@ export class BubbleEventListener {
 
     private targetBubble: BBBubble;
 
-    private handleClick(_evt: MouseEvent) {
+    private handleClick(evt: MouseEvent) {
       if (!this.targetBubble) {
         return;
       }
 
-        this.targetBubble.behavior?.onClick();
+        this.targetBubble.behavior?.onClick(evt);
     };
   
     constructor(bubble: BBBubble, options: LongPressOptions = {}) {

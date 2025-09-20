@@ -19,7 +19,7 @@ export interface BubbleBehavior {
     after?: (stage: Stage) => Promise<void>;
 
     // event
-    onClick: () => Promise<void>;
+    onClick: (evt?: MouseEvent) => Promise<void>;
 
     onLongPress?: (pos: Position, originEvent: Event) => Promise<void>
 
