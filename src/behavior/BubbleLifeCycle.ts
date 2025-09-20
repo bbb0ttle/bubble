@@ -121,16 +121,18 @@ export class BubbleLifeCycle {
     }
 
     private async recycle() {
-        this.stage = Stage.RECYCLED;
-
         try {
-            const randomDuratio = () => Math.random() * 5000;
-            await new Promise((r) => setTimeout(r, 500 + randomDuratio()));
+            const randomDuration = () => Math.random() * 5000;
+            await new Promise((r) => setTimeout(r, 500 + randomDuration()));
         } catch (e) {
             console.error("onRecycle error:", e);
         }
-        
+
+        this.stage = Stage.RECYCLED;
         this.bubble.dispatchEvent(new CustomEvent(Stage.RECYCLED, { bubbles: true, composed: true }));
+
+        const randomDuration = () => Math.random() * 5000;
+        await new Promise((r) => setTimeout(r, 500 + randomDuration()));
     }
 
     private stageActionMap: Map<Stage, () => Promise<void>> = new Map([
