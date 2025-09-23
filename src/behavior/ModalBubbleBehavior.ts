@@ -15,6 +15,10 @@ export class ModalBubbleBehavior implements BubbleBehavior{
     private _pos: Position = { x: 0, y: 0 };
     private _size: number = 50;
 
+    onShortPress?: ((pos: Position, originEvent: Event) => Promise<void>) | undefined = async () => {
+        await this.onClick();
+    };
+
     onBorn: () => Promise<void> = async () => {
         if (this.born) {
             return;
