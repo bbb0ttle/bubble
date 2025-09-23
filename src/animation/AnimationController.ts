@@ -57,7 +57,7 @@ export class AnimationController {
       ], {
         duration: duration,
         iterations: 1,
-        easing: 'ease-in-out',
+        easing: 'ease-out',
       });
     })
 
@@ -147,7 +147,7 @@ export class AnimationController {
       ], {
         duration: defaultAnimationDuration,
         iterations: 1,
-        easing: 'ease-in-out',
+        easing: 'ease-out',
       });
     });
 
