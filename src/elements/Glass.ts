@@ -1,5 +1,6 @@
 import {BBBubble} from "./BBBubble.ts";
 import {Stage} from "../behavior/BubbleLifeCycle.ts";
+import { NormalBubbleBehavior } from "../behavior/NormalBehavior.ts";
 
 export class Glass extends HTMLElement {
     root: ShadowRoot;
@@ -35,19 +36,29 @@ export class Glass extends HTMLElement {
     }
 
     private getRandomBubble() {
-        const diedBubbles = this.bubbles.filter(bubble => bubble.lifeCycle.isAt(Stage.RECYCLED));
-        const index = Math.floor(Math.random() * diedBubbles.length);
-        return diedBubbles[index];
+        const bubbles = this.bubbles.filter(bubble => bubble.behavior instanceof NormalBubbleBehavior);
+        const index = Math.floor(Math.random() * bubbles.length);
+        return bubbles[index];
     }
 
     public async getRandomDiedBubble() {
-        const diedBubbles = this.bubbles.filter(bubble => bubble.lifeCycle.isAt(Stage.RECYCLED));
+        const diedBubbles = this.bubbles.filter(bubble => {
+            if (!(bubble.behavior instanceof NormalBubbleBehavior)) {
+                return false;
+            }
+
+            return bubble.lifeCycle.isAt(Stage.RECYCLED);
+        });
+
         if (diedBubbles.length !== 0) {
             const dice = Math.floor(Math.random() * diedBubbles.length);
             return diedBubbles[dice];
         }
 
         const randomBubble = this.getRandomBubble();
+
+        await randomBubble.fade(0);
+        await randomBubble.recycle();
 
         return randomBubble;
     }
