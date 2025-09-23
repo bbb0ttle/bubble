@@ -80,16 +80,6 @@ export class ModalBubbleBehavior implements BubbleBehavior{
             y: (space.height - targetSize) / 2
         }
 
-        const posStop0 = {
-            x: targetPos.x - 6,
-            y: targetPos.y - 6
-        }
-
-        const posStop1 = {
-            x: targetPos.x + 4,
-            y: targetPos.y + 4
-        }
-
         this.actor.scaleTo(targetSize, .5 * duration, true);
 
         this.actor.styleInfo.replaceSync(`
@@ -99,12 +89,6 @@ export class ModalBubbleBehavior implements BubbleBehavior{
             }
         `);
 
-        const posBounce = async () => {
-            await this.actor.goto(posStop0, duration * .5, true);
-            await this.actor.goto(posStop1, duration * .3, true);
-            await this.actor.goto(targetPos, duration * .2, true);
-        }
-
         const sizeBounce = async () => {
             await this.actor.scaleTo(targetSize * 1.1, .5 * duration, true);
             await this.actor.scaleTo(targetSize * 0.8, .3 * duration, true);
@@ -112,7 +96,7 @@ export class ModalBubbleBehavior implements BubbleBehavior{
         }
 
         await Promise.all([
-            posBounce(),
+            this.actor.goto(targetPos, duration * .2, true, true),
             sizeBounce()
         ]);
 

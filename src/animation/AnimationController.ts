@@ -45,11 +45,13 @@ export class AnimationController {
 
   private movePromise: Promise<void> = Promise.resolve();
 
-  async move(from: Position, to: Position, duration: number) {
+  async move(from: Position, to: Position, duration: number, bounce: boolean = false) {
     this.movePromise = this.movePromise.then(() => {
       if (from.x != this.actor.position.x || from.y != this.actor.position.y) {
         from = {x: this.actor.position.x, y: this.actor.position.y};
       }
+
+      const easingVal = bounce ? 'cubic-bezier(0.34, 1.56, 0.64, 1)' : 'ease-out';
 
       return this.animate('move', [
         {translate: `${from.x}px ${from.y}px 0`},
@@ -57,7 +59,7 @@ export class AnimationController {
       ], {
         duration: duration,
         iterations: 1,
-        easing: 'ease-out',
+        easing: easingVal
       });
     })
 
