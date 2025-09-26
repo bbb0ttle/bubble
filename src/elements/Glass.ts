@@ -30,7 +30,6 @@ export class Glass extends HTMLElement {
 
     private setViewportHeight() {
         const vh = window.innerHeight * 0.01;
-        console.log("vh", vh)
         document.documentElement.style.setProperty('--myvh', `${vh}px`);
     }
 
