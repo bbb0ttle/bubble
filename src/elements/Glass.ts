@@ -39,16 +39,18 @@ export class Glass extends HTMLElement {
         return diedBubbles[index];
     }
 
-    public async getRandomDiedBubble() {
+    public async getBubble() {
         const diedBubbles = this.bubbles.filter(bubble => bubble.lifeCycle.isAt(Stage.RECYCLED));
         if (diedBubbles.length !== 0) {
             const dice = Math.floor(Math.random() * diedBubbles.length);
             return diedBubbles[dice];
         }
 
-        const randomBubble = this.getRandomBubble();
+        const bubble = this.getRandomBubble();
 
-        return randomBubble;
+        bubble.lifeCycle.stop();
+
+        return bubble;
     }
 
     public get glass(): HTMLElement | null {

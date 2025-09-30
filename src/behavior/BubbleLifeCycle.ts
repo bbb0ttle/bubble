@@ -12,7 +12,7 @@ export class BubbleLifeCycle {
         this.bubble = bubble;
         this.stage = stage;
 
-        this.cycle();
+        this.cycle().then();
     }
 
     private animationFrameId: number = -1;
@@ -39,6 +39,7 @@ export class BubbleLifeCycle {
 
     async reset() {
         this.stage = Stage.RECYCLED;
+        this.cycle().then();
     }
 
     private async nextStage(): Promise<void> {
