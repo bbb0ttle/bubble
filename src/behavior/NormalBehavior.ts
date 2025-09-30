@@ -13,7 +13,7 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         await this.eatOthers();
     }
 
-    onBorn: () => Promise<void> = async () => {
+    async onBorn() {
         this.actor.display(false);
 
         await this.actor.scaleTo(this.actor.randomInitSize());
@@ -123,7 +123,9 @@ export class NormalBubbleBehavior implements BubbleBehavior {
         return true;
     }
 
-    onForgot: () => Promise<void> = async() => {};
+    async onForgot() {
+
+    };
 
     async onLearned(): Promise<void> {
         this.eating = false;
