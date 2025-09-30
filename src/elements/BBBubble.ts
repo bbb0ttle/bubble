@@ -132,12 +132,12 @@ export class BBBubble extends HTMLElement {
         await someNew.onLearned();
     }
 
-    async goto(target: Position, duration: number = 200, force = false) {
+    async goto(target: Position, duration: number = 200, force = false, bounce = false) {
         target = force ? target : this.getSafePos(target);
 
         this.element!.style.removeProperty("translate");
 
-        await this.animationCtrl.move(this.position, target, duration);
+        await this.animationCtrl.move(this.position, target, duration, bounce);
         this.position = target;
     }
 

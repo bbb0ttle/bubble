@@ -15,7 +15,7 @@ export function css(initSize: number): string {
 
         border-radius: 50%;
         
-        transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
+        transition: width 0.2s ease-out, height 0.2s ease-out;
         
         will-change: transform, opacity;
         
