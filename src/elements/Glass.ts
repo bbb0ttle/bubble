@@ -40,7 +40,7 @@ export class Glass extends HTMLElement {
         return bubbles[index];
     }
 
-    public async getRandomDiedBubble() {
+    public async getBubble() {
         const diedBubbles = this.bubbles.filter(bubble => {
             if (!(bubble.behavior instanceof NormalBubbleBehavior)) {
                 return false;
