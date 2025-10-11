@@ -73,6 +73,8 @@ export class BBBubble extends HTMLElement {
 
         this.styleInfo.destroy();
 
+        this.element!.innerHTML = `<slot></slot>`;
+
         const behavior = this.getBehaviorByType();
         await this.learn(behavior)
     }
